@@ -117,6 +117,9 @@ Per rule, one of **PASS / FAIL / WARN / SIGN-OFF / SKIP**; only a `blocker` FAIL
 5. **Severity resolution:** at tag time, if the rule carries `severity_by_profile`, the effective severity = `severity_by_profile[declared_tier] ?? severity`. Pure map lookup; no other engine change. v1 ships exactly two users: BR-03 and ENV-04 (`warn` at team → `blocker` at critical).
 6. Missing descriptor: profile resolution defaults to `solo` (core only) and DESC-01's warning tells the user why team/critical rules skipped.
 
+### 4.3 Gate funnel (per rule, mirrors baseline)
+`applies_to` includes type? → profile in ACTIVE? → `requires` satisfied (FLAG opt-in)? → evaluate `check.kind` → map `ok` to verdict (`true`→PASS; `false`+sign-off→SIGN-OFF; `false`+manual→WARN detail prompting judgment; `false`+warn→WARN; `false`+blocker→FAIL; `null`→SKIP).
+
 ### 4.4 Descriptor schema (`schema/repo.schema.json`, normative)
 
 Hand-rolled validation (zero-dep, as baseline `src/validate.mjs`). This is the schema DESC-02 validates against; `config-presets/*.repo.json` and `templates/pipeline.repo.json` are authored from it:
@@ -167,9 +170,6 @@ Hand-rolled validation (zero-dep, as baseline `src/validate.mjs`). This is the s
 }
 ```
 
-### 4.3 Gate funnel (per rule, mirrors baseline)
-`applies_to` includes type? → profile in ACTIVE? → `requires` satisfied (FLAG opt-in)? → evaluate `check.kind` → map `ok` to verdict (`true`→PASS; `false`+sign-off→SIGN-OFF; `false`+manual→WARN detail prompting judgment; `false`+warn→WARN; `false`+blocker→FAIL; `null`→SKIP).
-
 ## 5. Check kinds
 
 ### 5.1 Reused from baseline (implement with the same semantics)
@@ -193,6 +193,8 @@ Hand-rolled validation (zero-dep, as baseline `src/validate.mjs`). This is the s
 
 ### 5.3 Degradation honesty
 Every evaluator returns `ok ∈ {true, false, null}`; `null` → SKIP with a reason string. Forge evaluators record exactly which queries ran and report `forge: not consulted` when degraded (baseline OPS-07's "one recorded query" pattern). CI-02/CI-03/IAC-06's deterministic locks are presence claims over closed glob sets — their escape hatches (`risk-acceptance` / `deviation` judgments) are documented in the rules themselves (RULES.md, locked resolution R1/R3).
+
+**Descriptor presence/content split (DESC-01 vs DESC-02).** `descriptor-valid` (DESC-02, a blocker) returns `null` → SKIP when `pipeline.repo.json` is **absent** — a missing descriptor is DESC-01's warning, never DESC-02's blocker FAIL. The blocker fires only on a *present-but-invalid* descriptor (`ok = false`). This keeps the `blocker⇒deterministic` law honest: a no-descriptor repo scores as `solo` (core only, §4.2.6) with a single DESC-01 warning, not a red build.
 
 ## 6. Records & the sign-off ledger
 
