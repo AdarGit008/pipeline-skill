@@ -11,8 +11,8 @@
 // lists ten new by name; RULES.md's CHECK prose needs five more (release-marks,
 // env-deploy-path, env-trigger, iac-state, iac-secrets) — see docs/spec/FOLLOW-UPS.md #8.
 import { execFileSync } from 'node:child_process'
-import { validateRecord } from './validate.mjs'
 import { asArr, parseDate } from './repo.mjs'
+import { loadJudgments, loadFlags, selectSignoffs, gatherJdgFacts, ledgerHealth } from './jdg.mjs'
 
 // Every kind evalCheck() knows how to run; --self-check (chunk #5) flags any rule check.kind not in here.
 export const CHECK_KINDS = new Set([
@@ -43,23 +43,10 @@ export function makeForge(repo, noForge = false) {
   }
 }
 
-// ---- minimal ledger reader (chunk #5's jdg.mjs deepens this with tripwire/expected_state) ----
-function loadJudgments(repo) {
-  return repo.match('records/judgments/*.json').sort().map(f => {
-    const raw = repo.read(f)
-    if (raw == null) return { file: f, errors: ['unreadable'], data: null }
-    let data; try { data = JSON.parse(raw) } catch { return { file: f, errors: ['not valid JSON'], data: null } }
-    return { file: f, errors: validateRecord('judgment', data), data }
-  })
-}
-function loadFlags(repo) {
-  return repo.match('records/flags/*.json').sort().map(f => {
-    const raw = repo.read(f)
-    if (raw == null) return { file: f, errors: ['unreadable'], data: null }
-    let data; try { data = JSON.parse(raw) } catch { return { file: f, errors: ['not valid JSON'], data: null } }
-    return { file: f, errors: validateRecord('flag', data), data }
-  })
-}
+// Ledger reader + judgment evaluation now live in src/jdg.mjs (issue #5 factored them out of
+// here). loadJudgments/loadFlags return [{ file, name, data, errors }]; selectSignoffs picks
+// the newest valid sign-off per subject; ledgerHealth + gatherJdgFacts run the full
+// expected_state/tripwire/review_by evaluator that GOV-01's jdg-health reuses in-check.
 
 export function makeEvalCheck({ repo, cfg, DESCRIPTOR = null, declaredTier = 'solo', noForge = false, today = null }) {
   const { match, read, readText, readRaw, tags, lsRemoteHeads, localHeads, commitISO, firstCommitISO, isAncestor, HEAD } = repo
@@ -423,14 +410,12 @@ export function makeEvalCheck({ repo, cfg, DESCRIPTOR = null, declaredTier = 'so
       return unmerged.length ? { ok: false, detail: `hotfix branch(es) not back-merged into '${dev}': ${short(unmerged)}${label}` } : { ok: true, detail: `all ${hotfixes.length} hotfix branch(es) reach '${dev}'${label}` }
     }
 
-    if (k === 'jdg-health') { // GOV-01 (ledger; schema + expiry now, tripwire/drift lands in chunk #5)
-      const recs = loadJudgments(repo)
-      if (!recs.length) return { ok: true, detail: 'ledger empty — no judgments to keep healthy' }
-      const invalid = recs.filter(r => !r.data || r.errors.length).map(r => `${r.file.split('/').pop()}: ${(r.errors || ['unreadable'])[0]}`)
-      const expired = recs.filter(r => r.data && !r.errors.length && r.data.review_by < TODAY).map(r => `${r.data.id} expired ${r.data.review_by}`)
-      const problems = [...invalid, ...expired]
-      if (problems.length) return { ok: false, detail: `ledger unhealthy: ${short(problems)} — re-make or retire (pipeline jdg check). [tripwire/drift eval: chunk #5]` }
-      return { ok: true, detail: `${recs.length} judgment(s): schema-valid, unexpired` }
+    if (k === 'jdg-health') { // GOV-01 — runs jdg.mjs's full evaluator in-check (§5.2, §6.1)
+      const loaded = loadJudgments(repo)
+      // facts view: descriptor.* · planes.* · git.* · today. The forge is probed only if a
+      // record's tripwire/expected_state names planes.forge (gatherJdgFacts decides).
+      const facts = gatherJdgFacts(repo, { descriptor: DESCRIPTOR, today: TODAY, forge, records: loaded.filter(r => !r.errors.length).map(r => r.data) })
+      return ledgerHealth(loaded, facts)
     }
 
     if (k === 'breakglass-ledger') { // HOT-04 (ledger; forge cross-ref best-effort)
@@ -478,18 +463,9 @@ export function makeEvalCheck({ repo, cfg, DESCRIPTOR = null, declaredTier = 'so
     return { ok: null, detail: `no evaluator for kind '${k}'` }
   }
 
-  // lazy signoff selection (parse ledger once, latest sign-off per subject)
+  // lazy signoff selection (parse ledger once; newest valid sign-off per subject — jdg.mjs)
   let _signoffs = null
-  function signoffs() {
-    if (_signoffs) return _signoffs
-    _signoffs = {}
-    for (const r of loadJudgments(repo)) {
-      if (!r.data || r.errors.length || r.data.kind !== 'sign-off') continue
-      const s = r.data.subject
-      if (!_signoffs[s] || r.data.date > _signoffs[s].date) _signoffs[s] = r.data
-    }
-    return _signoffs
-  }
+  const signoffs = () => (_signoffs ??= selectSignoffs(loadJudgments(repo)))
 
   return evalCheck
 }
