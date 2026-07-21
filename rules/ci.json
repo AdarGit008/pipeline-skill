@@ -1,0 +1,221 @@
+{
+  "rules": [
+    {
+      "id": "CI-01",
+      "title": "A CI pipeline definition exists",
+      "category": "ci",
+      "severity": "blocker",
+      "applies_to": [
+        "service",
+        "app",
+        "library",
+        "infra"
+      ],
+      "source": "https://dora.dev/capabilities/continuous-integration/",
+      "lesson": "every other delivery rule presupposes an automated pipeline; \"we run checks by hand\" is the failure mode the standard exists to retire. Pure presence — deterministic",
+      "rationale": "Every other delivery rule presupposes an automated pipeline; \"we run checks by hand\" is the failure mode the entire standard exists to retire. Pure presence/absence over known CI paths — deterministic.",
+      "fix": "Add a CI definition (e.g. .github/workflows/ci.yml) that builds and tests on push/PR.",
+      "sources": [
+        "tree"
+      ],
+      "on_unreachable": "skip",
+      "contexts": [
+        "check"
+      ],
+      "certainty": "deterministic",
+      "check": {
+        "kind": "any-file",
+        "globs": [
+          ".github/workflows/*.yml",
+          ".github/workflows/*.yaml",
+          ".gitlab-ci.yml",
+          "Jenkinsfile",
+          ".circleci/config.yml",
+          "azure-pipelines.yml"
+        ]
+      }
+    },
+    {
+      "id": "CI-02",
+      "title": "The pipeline builds & tests on PR/push",
+      "category": "ci",
+      "severity": "blocker",
+      "applies_to": [
+        "service",
+        "app",
+        "library",
+        "infra"
+      ],
+      "source": "https://dora.dev/capabilities/continuous-integration/",
+      "lesson": "scoped to what a line-scan proves: your checked-in pipeline declares build+test on integration triggers. Merge-gating is BR-03; test quality is baseline TEST; external CI escapes via risk-acceptance (R1)",
+      "rationale": "The claim is scoped precisely to what a line-scan proves: your checked-in pipeline definition declares build+test on integration triggers. A build-only workflow runs zero tests, so a bare build is deliberately absent from the pattern. External/unreadable CI false-negatives in one direction only and resolves via risk-acceptance, never silently.",
+      "fix": "Add trigger keys and a test step to the workflow; external/unreadable CI → pipeline jdg new --kind risk-acceptance --subject CI-02 --reason \"CI is hosted at <system>, definition not in-repo\" --review-by <date>.",
+      "sources": [
+        "tree"
+      ],
+      "on_unreachable": "skip",
+      "contexts": [
+        "check"
+      ],
+      "certainty": "deterministic",
+      "check": {
+        "kind": "file-contains",
+        "globs": [
+          ".github/workflows/*.yml",
+          ".github/workflows/*.yaml",
+          ".gitlab-ci.yml",
+          "Jenkinsfile",
+          ".circleci/config.yml",
+          "azure-pipelines.yml"
+        ],
+        "pattern": "(?=[\\s\\S]*(pull_request|merge_request|push))(?=[\\s\\S]*(npm (run )?test|pytest|go test|cargo test|make test|gradle (test|check)|mvn (test|verify)|tox))"
+      }
+    },
+    {
+      "id": "CI-03",
+      "title": "Deployment is automated",
+      "category": "ci",
+      "severity": "blocker",
+      "applies_to": [
+        "service",
+        "app",
+        "infra"
+      ],
+      "source": "https://dora.dev/capabilities/deployment-automation/; https://sre.google/sre-book/release-engineering/",
+      "lesson": "deploy-by-hand is the named failure source; the citation holds with no team-size precondition, so this blocks even at solo. Manual-by-design is a documented deviation. Library SKIPs (publishing ≠ deployment)",
+      "rationale": "Deploy-by-hand is the named failure source, and the citation holds with no team-size precondition — so this blocks even at solo. Scoped claim: a deploy step/workflow is declared in the checked-in pipeline definitions. A genuinely manual-by-design deploy is a documented deviation.",
+      "fix": "Add a deploy job/workflow (promote the same artifact the pipeline built); manual-by-design → pipeline jdg new --kind deviation --subject CI-03 --reason \"...\" --review-by <date>.",
+      "sources": [
+        "tree"
+      ],
+      "on_unreachable": "skip",
+      "contexts": [
+        "check"
+      ],
+      "certainty": "deterministic",
+      "check": {
+        "kind": "any-of",
+        "checks": [
+          {
+            "kind": "file-contains",
+            "globs": [
+              ".github/workflows/*.yml",
+              ".github/workflows/*.yaml",
+              ".gitlab-ci.yml",
+              "Jenkinsfile",
+              ".circleci/config.yml",
+              "azure-pipelines.yml"
+            ],
+            "extra_globs_from_config": "deploy_globs",
+            "pattern": "environment:|\\bdeploy\\b|aws .*deploy|flyctl deploy|vercel|netlify deploy|kubectl apply|terraform apply|serverless deploy|pulumi up|cdk deploy"
+          },
+          {
+            "kind": "any-file",
+            "globs": [
+              ".github/workflows/*deploy*",
+              ".github/workflows/*deploy*.yml",
+              ".github/workflows/*deploy*.yaml"
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "CI-04",
+      "title": "A post-deploy smoke test runs in the deploy path",
+      "category": "ci",
+      "severity": "warn",
+      "profile": "critical",
+      "applies_to": [
+        "service",
+        "app",
+        "infra"
+      ],
+      "source": "https://dora.dev/capabilities/deployment-automation/; https://sre.google/sre-book/testing-reliability/",
+      "lesson": "DORA defines the deployment pipeline as including a deployment test — the deploy path is incomplete without it. Presence-of-mechanism only; adequacy folds into ENV-06 sign-off",
+      "rationale": "DORA defines the deployment pipeline as including a deployment test — the deploy path is incomplete without it. Presence-of-mechanism check only; smoke-test adequacy folds into ENV-06’s sign-off residue. Heuristic: no YAML parser, step ordering inferred by line position.",
+      "fix": "Add a smoke step to the deploy workflow that hits the service’s health endpoint and fails the job on non-2xx.",
+      "sources": [
+        "tree"
+      ],
+      "on_unreachable": "skip",
+      "contexts": [
+        "check"
+      ],
+      "certainty": "heuristic",
+      "check": {
+        "kind": "file-contains",
+        "globs": [
+          ".github/workflows/*.yml",
+          ".github/workflows/*.yaml",
+          ".gitlab-ci.yml",
+          "Jenkinsfile",
+          ".circleci/config.yml",
+          "azure-pipelines.yml"
+        ],
+        "extra_globs_from_config": "deploy_globs",
+        "pattern": "smoke|health|/health|wait-on",
+        "ordering": "after-deploy"
+      }
+    },
+    {
+      "id": "CI-05",
+      "title": "The pipeline is alive at the forge",
+      "category": "ci",
+      "severity": "warn",
+      "applies_to": [
+        "service",
+        "app",
+        "library",
+        "infra"
+      ],
+      "source": "https://docs.github.com/en/actions/managing-workflow-runs-and-deployments/managing-workflow-runs/disabling-and-enabling-a-workflow",
+      "lesson": "a forge-auto-disabled workflow files nothing forever while every dashboard stays green — liveness is a checked fact. Lifts baseline OPS-07 workflow-state at the delivery workflows",
+      "rationale": "A scheduled/triggered workflow the forge has auto-disabled files nothing forever while every dashboard stays green — the death mode is silence, so liveness is a checked fact, not an assumption. One recorded forge query per CI workflow file; state active passes, any other state fails naming the state.",
+      "fix": "gh workflow enable <file> (or the Actions UI); a commit or manual dispatch resets the inactivity clock.",
+      "sources": [
+        "tree",
+        "forge"
+      ],
+      "on_unreachable": "skip",
+      "contexts": [
+        "check"
+      ],
+      "certainty": "deterministic",
+      "check": {
+        "kind": "workflow-state",
+        "globs": [
+          ".github/workflows/*.yml",
+          ".github/workflows/*.yaml"
+        ]
+      }
+    },
+    {
+      "id": "CI-06",
+      "title": "Deploy jobs depend on green build/test jobs",
+      "category": "ci",
+      "severity": "warn",
+      "profile": "team",
+      "applies_to": [
+        "service",
+        "app",
+        "infra"
+      ],
+      "source": "https://docs.aws.amazon.com/wellarchitected/latest/devops-guidance/dl.ads.1-test-deployments-in-pre-production-environments.html",
+      "lesson": "a deploy that can run against a red build ships the failure; in-workflow job ordering is the declared form of \"each stage gates the next\". Line-scan (no YAML parser) → stays warning at every tier (R2)",
+      "rationale": "A deploy that can run against a red build ships the failure; in-workflow job ordering is the declared form of \"each stage gates the next\". Line-scan structural inference (no YAML parser), hence heuristic — and hence a warning at every tier (R2: the blocker-at-critical hardening was not locked).",
+      "fix": "Add needs: [build, test] (the repo’s actual job names) to the deploy job.",
+      "sources": [
+        "tree"
+      ],
+      "on_unreachable": "skip",
+      "contexts": [
+        "check"
+      ],
+      "certainty": "heuristic",
+      "check": {
+        "kind": "workflow-job-order"
+      }
+    }
+  ]
+}

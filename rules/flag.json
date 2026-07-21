@@ -1,0 +1,121 @@
+{
+  "rules": [
+    {
+      "id": "FLAG-01",
+      "title": "A flag mechanism exists",
+      "category": "flag",
+      "severity": "warn",
+      "applies_to": [
+        "service",
+        "app"
+      ],
+      "source": "https://martinfowler.com/articles/feature-toggles.html; https://docs.launchdarkly.com/home/flags/toggle/; https://openfeature.dev/docs/reference/intro/",
+      "lesson": "release flags decouple deployment from release — a misbehaving feature becomes disableable without redeploying, shortening the recovery path. Honesty: no source quantifies kill-switch → MTTR (inference joining two sourced ends)",
+      "rationale": "The defining purpose of release flags is decoupling deployment from release — a misbehaving feature becomes disableable without redeploying, which shortens the recovery path. No primary source quantifies kill-switch → MTTR; the rationale claims the shorter path, not a measured number. Heuristic SDK-import scan.",
+      "fix": "Adopt a flag mechanism (OpenFeature SDK + provider, or a declared config-driven store) and register flags per FLAG-02.",
+      "sources": [
+        "tree"
+      ],
+      "on_unreachable": "skip",
+      "contexts": [
+        "check"
+      ],
+      "certainty": "heuristic",
+      "requires": "uses_feature_flags",
+      "check": {
+        "kind": "any-of",
+        "checks": [
+          {
+            "kind": "grep",
+            "globs": [
+              "src/**/*.js",
+              "src/**/*.jsx",
+              "src/**/*.ts",
+              "src/**/*.tsx",
+              "src/**/*.py",
+              "src/**/*.go",
+              "src/**/*.rb",
+              "package.json",
+              "requirements.txt",
+              "pyproject.toml",
+              "go.mod",
+              "Gemfile"
+            ],
+            "globs_from_config": "source_globs",
+            "pattern": "openfeature|@openfeature|launchdarkly|unleash|flagsmith|configcat|split\\.io|@growthbook",
+            "mode": "present"
+          },
+          {
+            "kind": "file-contains",
+            "globs": [
+              "pipeline.repo.json"
+            ],
+            "pattern": "\"flags\"[\\s\\S]*\"store\"|flags\\.store"
+          }
+        ]
+      }
+    },
+    {
+      "id": "FLAG-02",
+      "title": "Every flag has a registry record with an owner",
+      "category": "flag",
+      "severity": "warn",
+      "profile": "team",
+      "applies_to": [
+        "service",
+        "app"
+      ],
+      "source": "https://martinfowler.com/articles/feature-toggles.html",
+      "lesson": "one flag, one record (records/flags/FLAG-NNNN.json); an unnamed-owner flag is how \"who can turn this off?\" becomes a 3am archaeology dig. Empty active registry WARNs, never a vacuous pass",
+      "rationale": "One flag, one record (records/flags/FLAG-NNNN.json). The canonical article names exactly this metadata set; an unnamed-owner flag is how \"who can turn this off?\" becomes a 3am archaeology dig. When the family is active but zero records exist, the rule WARNs (an empty registry is a finding, not a vacuous pass).",
+      "fix": "cp templates/flag.json records/flags/FLAG-NNNN.json per live flag; fill name, owner, type, created, review_by.",
+      "sources": [
+        "tree"
+      ],
+      "on_unreachable": "skip",
+      "contexts": [
+        "check"
+      ],
+      "certainty": "deterministic",
+      "requires": "uses_feature_flags",
+      "check": {
+        "kind": "flag-registry",
+        "assert": "owner"
+      }
+    },
+    {
+      "id": "FLAG-03",
+      "title": "Flags carry expiry; none past-due",
+      "category": "flag",
+      "severity": "warn",
+      "profile": "team",
+      "applies_to": [
+        "service",
+        "app"
+      ],
+      "source": "https://martinfowler.com/articles/feature-toggles.html; https://docs.getunleash.io/concepts/technical-debt",
+      "lesson": "flags are inventory with a carrying cost; stale flags are an operational hazard. Mechanical \"time bomb\". Permanent types (kill-switch, permission) carry long review horizons instead",
+      "rationale": "Flags are inventory with a carrying cost; stale flags are an operational hazard, verbatim from the sources. This is the mechanical version of the cited \"time bomb\" practice. Permanent types (kill-switch, permission) need no near-term expiry; they carry long review horizons instead. Deterministic date math against the run date.",
+      "fix": "Set/repair review_by per flag; retire past-due flags or record pipeline jdg new --kind risk-acceptance --subject FLAG-03 --reason \"flag <name> kept because ...\" --review-by <date> with a tripwire.",
+      "sources": [
+        "tree"
+      ],
+      "on_unreachable": "skip",
+      "contexts": [
+        "check"
+      ],
+      "certainty": "deterministic",
+      "requires": "uses_feature_flags",
+      "check": {
+        "kind": "flag-registry",
+        "assert": "freshness",
+        "permanent_types": [
+          "kill-switch",
+          "permission"
+        ],
+        "permanent_days_from_config": "permanent_flag_review_days",
+        "default_permanent_days": 365
+      }
+    }
+  ]
+}
