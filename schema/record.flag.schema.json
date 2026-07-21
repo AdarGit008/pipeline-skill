@@ -1,0 +1,50 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://github.com/AdarGit008/pipeline-skill/schema/record.flag.schema.json",
+  "title": "flag registry record — records/flags/FLAG-NNNN.json",
+  "description": "One feature flag, one owned file (patterned on baseline's per-claim records). The FLAG family is opt-in: it activates when the descriptor sets uses_feature_flags:true or records/flags/ is non-empty. This schema binds shape; FLAG-02 polices the non-empty owner and FLAG-03 the review_by freshness (present unless type ∈ {kill-switch, permission}, which carry long review horizons). The toggle-metadata field set originates in Fowler's Feature Toggles article; default review horizons are informed by Unleash's shipped per-type lifetimes.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["record", "id", "name", "owner", "type", "created"],
+  "properties": {
+    "record": {
+      "type": "string",
+      "enum": ["flag/1"],
+      "description": "Record kind + schema version."
+    },
+    "id": {
+      "type": "string",
+      "pattern": "^FLAG-[0-9]{4}$",
+      "description": "The record's identity — must match the filename."
+    },
+    "name": {
+      "type": "string",
+      "minLength": 1,
+      "description": "The flag key as it appears in code / the flag store (e.g. 'new-checkout-flow')."
+    },
+    "owner": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Who owns this flag — the answer to 'who can turn this off?'. FLAG-02 requires this be non-empty."
+    },
+    "type": {
+      "type": "string",
+      "enum": ["release", "experiment", "operational", "kill-switch", "permission", "sunset"],
+      "description": "Flag species (Unleash's type table). kill-switch/permission are permanent-class: FLAG-03 exempts them from near-term expiry, requiring review_by within permanent_flag_review_days instead."
+    },
+    "created": {
+      "type": "string",
+      "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$",
+      "description": "When the flag was introduced. Anchors the carrying-cost clock."
+    },
+    "review_by": {
+      "type": "string",
+      "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$",
+      "description": "Expiry / review date. FLAG-03 requires this present (unless a permanent type) and not past-due. Default horizons: release 40d · experiment 40d · operational 7d · sunset 90d · kill-switch/permission permanent-class."
+    },
+    "notes": {
+      "type": "string",
+      "description": "What it gates; removal plan."
+    }
+  }
+}

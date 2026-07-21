@@ -1,0 +1,43 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "pipeline.repo.json descriptor",
+  "type": "object",
+  "required": ["type", "profile", "branching_model", "default_branch"],
+  "additionalProperties": true,
+  "properties": {
+    "type": { "enum": ["service", "app", "library", "docs", "infra"] },
+    "profile": { "enum": ["solo", "team", "critical"] },
+    "branching_model": { "enum": ["trunk", "dev-staging-main", "gitflow"] },
+    "default_branch": { "type": "string", "minLength": 1 },
+    "environments": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["name", "tier"],
+        "properties": {
+          "name": { "type": "string", "minLength": 1 },
+          "tier": { "enum": ["dev", "staging", "prod"] },
+          "gated": { "type": "boolean", "default": false }
+        }
+      }
+    },
+    "iac": {
+      "type": "object",
+      "properties": {
+        "tool": { "enum": ["terraform", "pulumi", "cdk", "serverless", "cloudformation", "bicep"] },
+        "state_backend": { "type": "string" }
+      }
+    },
+    "uses_feature_flags": { "type": "boolean", "default": false },
+    "branches": {
+      "type": "object",
+      "properties": {
+        "integration": { "type": "string" },
+        "staging": { "type": "string" },
+        "production": { "type": "string" }
+      },
+      "_comment": "Optional. Unset keys fall back to branching_model conventions: trunk → default_branch; gitflow → develop; dev-staging-main → dev/staging/default_branch. Consumed by BR-04, ENV-03, HOT-02."
+    },
+    "recovery_objective": { "type": "string" }
+  }
+}

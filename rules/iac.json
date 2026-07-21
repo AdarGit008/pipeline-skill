@@ -1,0 +1,234 @@
+{
+  "rules": [
+    {
+      "id": "IAC-01",
+      "title": "An IaC tool is present",
+      "category": "iac",
+      "severity": "blocker",
+      "profile": "team",
+      "applies_to": [
+        "service",
+        "app",
+        "infra"
+      ],
+      "source": "https://developer.hashicorp.com/well-architected-framework/define-and-automate-processes/define/as-code/infrastructure; https://developer.hashicorp.com/terraform/tutorials/aws-get-started/infrastructure-as-code",
+      "lesson": "at team scale, infrastructure that exists only in a console is unreproducible; requires the mechanism (blocker), flags hand-applied changes (IAC-03) as deviation, not sin. docs/library SKIP via applies_to",
+      "rationale": "At team scale, infrastructure that exists only in a console is unreproducible and unauditable — manual provisioning is the named failure source. Research-narrowed: sources say \"best practice\", not \"prohibited\", so the rule requires the mechanism (blocker) and flags hand-applied changes as a deviation elsewhere.",
+      "fix": "Define the infrastructure in an IaC tool (Terraform/CDK/Pulumi/Serverless/CFN/Bicep) and commit it alongside the app.",
+      "sources": [
+        "tree"
+      ],
+      "on_unreachable": "skip",
+      "contexts": [
+        "check"
+      ],
+      "certainty": "deterministic",
+      "check": {
+        "kind": "any-file",
+        "globs": [
+          "**/*.tf",
+          "**/Pulumi.yaml",
+          "**/cdk.json",
+          "**/serverless.yml",
+          "**/*.template",
+          "**/template.yml",
+          "**/template.yaml",
+          "**/*.bicep",
+          "**/pulumi.*.yaml"
+        ],
+        "extra_globs_from_config": "iac_globs"
+      }
+    },
+    {
+      "id": "IAC-02",
+      "title": "IaC state is remote/shared; local state never committed",
+      "category": "iac",
+      "severity": "warn",
+      "profile": "team",
+      "applies_to": [
+        "service",
+        "app",
+        "infra"
+      ],
+      "source": "https://developer.hashicorp.com/terraform/language/state/remote; https://developer.hashicorp.com/terraform/language/state",
+      "lesson": "local state breaks team usage and committed state can leak secrets; HashiCorp states all three sub-claims verbatim. Team-tier floor is right — the cited complication is explicitly \"in a team\"",
+      "rationale": "Local state breaks team usage and committed state can leak secrets; HashiCorp states all three sub-claims (local fails teams, remote is the mechanism, never commit) verbatim. Non-Terraform IaC evaluates per-tool markers; CDK is tool-managed state (SKIP with detail).",
+      "fix": "Configure a remote backend (S3/HCP Terraform/etc.), delete any tracked state files, add *.tfstate* to .gitignore.",
+      "sources": [
+        "tree"
+      ],
+      "on_unreachable": "skip",
+      "contexts": [
+        "check"
+      ],
+      "certainty": "deterministic",
+      "check": {
+        "kind": "iac-state"
+      }
+    },
+    {
+      "id": "IAC-03",
+      "title": "IaC is applied by the pipeline, not by hand",
+      "category": "iac",
+      "severity": "warn",
+      "profile": "team",
+      "applies_to": [
+        "service",
+        "app",
+        "infra"
+      ],
+      "source": "https://developer.hashicorp.com/terraform/tutorials/cloud/drift-detection; https://docs.aws.amazon.com/wellarchitected/latest/framework/ops_dev_integ_conf_mgmt_sys.html",
+      "lesson": "IaC humans apply from laptops reproduces the console problem with extra steps. Manual application is the flagged deviation (narrowed: \"best practice\", not \"prohibited\") — accepted via the ledger, not silently",
+      "rationale": "IaC that humans apply from laptops reproduces the console problem with extra steps: untracked who/what/when, no consistent workflow. Manual application is the flagged deviation (research narrowing), accepted consciously via the ledger. Heuristic line-scan.",
+      "fix": "Add an apply job to the pipeline (plan on PR, apply on merge); accepted manual application → pipeline jdg new --kind deviation --subject IAC-03 --reason \"...\" --review-by <date>.",
+      "sources": [
+        "tree"
+      ],
+      "on_unreachable": "skip",
+      "contexts": [
+        "check"
+      ],
+      "certainty": "heuristic",
+      "check": {
+        "kind": "file-contains",
+        "globs": [
+          ".github/workflows/*.yml",
+          ".github/workflows/*.yaml",
+          ".gitlab-ci.yml",
+          "Jenkinsfile",
+          ".circleci/config.yml",
+          "azure-pipelines.yml"
+        ],
+        "extra_globs_from_config": "iac_globs",
+        "pattern": "terraform apply|pulumi up|cdk deploy|serverless deploy|aws cloudformation deploy"
+      }
+    },
+    {
+      "id": "IAC-04",
+      "title": "Config drift is detected on a cadence",
+      "category": "iac",
+      "severity": "warn",
+      "profile": "critical",
+      "applies_to": [
+        "service",
+        "app",
+        "infra"
+      ],
+      "source": "https://developer.hashicorp.com/terraform/tutorials/cloud/drift-detection; https://developer.hashicorp.com/well-architected-framework/optimize-systems/monitor-system-health/detect-configuration-drift; https://docs.aws.amazon.com/wellarchitected/latest/framework/rel_tracking_change_management_immutable_infrastructure.html",
+      "lesson": "drift is documented as expected and unpreventable — the failure is assuming it absent. Verify the detection mechanism exists at rest (scheduled plan/drift), or a drift-watch sign-off",
+      "rationale": "Drift is documented as expected and unpreventable — the failure is assuming it absent. The checker verifies the detection mechanism exists at rest (it can never see the cloud): a scheduled plan/drift workflow, or a dated sign-off recording a human reviews drift on a named cadence. Heuristic line-scan for the schedule+command.",
+      "fix": "Add a nightly cron workflow running plan/refresh-and-detect, failing (or filing) on diff; or record the drift-watch sign-off with a review_by.",
+      "sources": [
+        "tree",
+        "ledger"
+      ],
+      "on_unreachable": "skip",
+      "contexts": [
+        "check"
+      ],
+      "certainty": "heuristic",
+      "check": {
+        "kind": "any-of",
+        "checks": [
+          {
+            "kind": "file-contains",
+            "globs": [
+              ".github/workflows/*.yml",
+              ".github/workflows/*.yaml",
+              ".gitlab-ci.yml",
+              "Jenkinsfile",
+              ".circleci/config.yml",
+              "azure-pipelines.yml"
+            ],
+            "pattern": "(?=[\\s\\S]*(schedule:|cron))(?=[\\s\\S]*(terraform plan|pulumi preview --refresh|driftctl))"
+          },
+          {
+            "kind": "signoff"
+          }
+        ]
+      }
+    },
+    {
+      "id": "IAC-05",
+      "title": "Per-environment IaC configuration is separated",
+      "category": "iac",
+      "severity": "warn",
+      "profile": "critical",
+      "applies_to": [
+        "service",
+        "app",
+        "infra"
+      ],
+      "source": "https://developer.hashicorp.com/terraform/enterprise/workspaces/configurations; https://developer.hashicorp.com/terraform/language/state/workspaces; https://12factor.net/dev-prod-parity",
+      "lesson": "parity comes from replicating one definition across tiers with per-env differences in variables, not three divergent hand-copies. Scans for the documented Terraform per-env shapes",
+      "rationale": "Parity comes from replicating one definition across tiers with per-environment differences held in variables, not three divergent hand-copies. Research-narrowed: 12-factor is app-config-shaped; the Terraform per-environment patterns close the infra gap — the rule scans for exactly those shapes. Heuristic.",
+      "fix": "Restructure to one definition + per-env tfvars/workspaces/stacks; a genuinely single-environment shop SKIPs via profile.",
+      "sources": [
+        "tree"
+      ],
+      "on_unreachable": "skip",
+      "contexts": [
+        "check"
+      ],
+      "certainty": "heuristic",
+      "check": {
+        "kind": "any-of",
+        "checks": [
+          {
+            "kind": "grep",
+            "globs": [
+              "**/*.tf"
+            ],
+            "pattern": "terraform workspace|\\bworkspace\\b",
+            "mode": "present"
+          },
+          {
+            "kind": "any-file",
+            "globs": [
+              "**/*.tfvars",
+              "envs/**",
+              "stacks/**",
+              "live/**",
+              "Pulumi.*.yaml"
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "IAC-06",
+      "title": "No plaintext secrets in IaC files; tfvars never committed",
+      "category": "iac",
+      "severity": "blocker",
+      "profile": "team",
+      "applies_to": [
+        "service",
+        "app",
+        "infra"
+      ],
+      "source": "https://developer.hashicorp.com/terraform/language/manage-sensitive-data; https://developer.hashicorp.com/terraform/tutorials/configuration-language/sensitive-variables; https://github.com/github/gitignore/blob/main/Terraform.gitignore",
+      "lesson": "secrets in IaC source land in state and plan files, and in git history are unrecoverable without rotation — a blocker is proportionate. Deterministic signature tier only + tfvars git-ignore; entropy heuristics stay baseline SEC (R3, overlap control)",
+      "rationale": "Secrets in IaC source land in state and plan files, and in git history they are unrecoverable without rotation — a blocker is proportionate. The check is the deterministic signature tier only (private-key blocks, cloud key shapes) plus the tfvars git-ignore rule HashiCorp points at; softer entropy heuristics stay with baseline’s SEC family.",
+      "fix": "Move secrets to a manager or protected CI variables; git rm --cached the tfvars, add *.tfvars to .gitignore, rotate anything that landed. False positive → pipeline jdg new --kind deviation --subject IAC-06 --reason \"finding <id> is <test fixture|example>\" --review-by <date>.",
+      "sources": [
+        "tree",
+        "history"
+      ],
+      "on_unreachable": "skip",
+      "contexts": [
+        "check"
+      ],
+      "certainty": "deterministic",
+      "check": {
+        "kind": "iac-secrets",
+        "globs": [
+          "**/*.tf",
+          "**/*.tfvars",
+          "**/Pulumi*.yaml",
+          "**/*.bicep"
+        ],
+        "signature_pattern": "-----BEGIN [A-Z ]*PRIVATE KEY-----|AKIA[0-9A-Z]{16}"
+      }
+    }
+  ]
+}

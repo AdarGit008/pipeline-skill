@@ -1,0 +1,28 @@
+{
+  "name": "pipeline-skill",
+  "version": "0.1.0",
+  "project_types": [
+    "service",
+    "app",
+    "library",
+    "docs",
+    "infra"
+  ],
+  "description": "Testable delivery-operations standard. 39 rules across descriptor, branching, CI/CD, environments, IaC, flags, rollback, hotfix/incident, and the ledger itself. Complexity scales with declared failure cost: profiles solo/team/critical.",
+  "profiles": {
+    "core": "Always on (= solo tier). Universal delivery-floor rules.",
+    "team": "Active when the descriptor declares team or critical.",
+    "critical": "Active only when the descriptor declares critical."
+  },
+  "modules": [
+    "rules/desc.json",
+    "rules/br.json",
+    "rules/ci.json",
+    "rules/env.json",
+    "rules/iac.json",
+    "rules/flag.json",
+    "rules/rb.json",
+    "rules/hot.json",
+    "rules/gov.json"
+  ]
+}

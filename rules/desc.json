@@ -1,0 +1,72 @@
+{
+  "rules": [
+    {
+      "id": "DESC-01",
+      "title": "pipeline.repo.json descriptor exists",
+      "category": "desc",
+      "severity": "warn",
+      "applies_to": "all",
+      "source": "https://docs.github.com/en/actions/concepts/workflows-and-actions/deployment-environments",
+      "lesson": "the descriptor is the one stored intent every cross-check (DESC-03, BR-04, ENV-01, RB-04) hangs off; absence is invited-not-forced (warn), invalidity is DESC-02 (baseline desc.json precedent)",
+      "rationale": "Profile, branching model, environments, and recovery objective cannot be reliably inferred from the tree; a minimal descriptor is the one stored intent every cross-check consumes. Absence is a warning; invalidity is DESC-02.",
+      "fix": "Copy the closest config-presets/*.repo.json preset (or templates/pipeline.repo.json) to the repo root and set type, profile, branching_model, default_branch, environments.",
+      "sources": [
+        "tree"
+      ],
+      "on_unreachable": "skip",
+      "contexts": [
+        "check"
+      ],
+      "certainty": "deterministic",
+      "check": {
+        "kind": "descriptor"
+      }
+    },
+    {
+      "id": "DESC-02",
+      "title": "A present descriptor is schema-valid",
+      "category": "desc",
+      "severity": "blocker",
+      "applies_to": "all",
+      "source": "machinery — baseline-skill rules/desc.json DESC-02 (presence/content severity split)",
+      "lesson": "every profile gate consumes the descriptor; an invalid one silently demotes the taxonomy to SKIPs while the run stays green. Deterministic, so blocker is lawful. Absent → SKIP (DESC-01 owns absence)",
+      "rationale": "Every profile gate and cross-check consumes the descriptor; an invalid one silently demotes the whole taxonomy to SKIPs while the run stays green-looking. Present-but-invalid fails loudly; absence stays DESC-01’s warning. A missing descriptor SKIPs here, keeping the blocker⇒deterministic law honest.",
+      "fix": "Fix the named schema errors, or re-copy a config-presets/*.repo.json preset and re-fill the identity fields.",
+      "sources": [
+        "tree"
+      ],
+      "on_unreachable": "skip",
+      "contexts": [
+        "check"
+      ],
+      "certainty": "deterministic",
+      "check": {
+        "kind": "descriptor-valid",
+        "schema": "schema/repo.schema.json"
+      }
+    },
+    {
+      "id": "DESC-03",
+      "title": "Declared profile matches observed complexity (the inverse-nag)",
+      "category": "desc",
+      "severity": "warn",
+      "applies_to": "all",
+      "source": "https://dora.dev/capabilities/streamlining-change-approval/",
+      "lesson": "the philosophy made structural: complexity you declared you don’t need is overhead to stop paying; a declaration that outruns reality is posture you don’t carry. Locked profile=core (R4) so the mechanic fires at solo",
+      "rationale": "Complexity you declared you don’t need (staging+prod+gated promotion under solo) is overhead to stop paying; a declaration that outruns reality (critical with no prod gate) is posture you don’t carry. Either direction fires exactly one warning; a legitimate mismatch resolves as a dated deviation judgment.",
+      "fix": "Reconcile declaration and reality: right-size the descriptor, remove the unjustified tier, or record pipeline jdg new --kind deviation --subject DESC-03 --reason \"why the mismatch is deliberate\" --review-by <date>.",
+      "sources": [
+        "tree",
+        "forge"
+      ],
+      "on_unreachable": "skip",
+      "contexts": [
+        "check"
+      ],
+      "certainty": "heuristic",
+      "check": {
+        "kind": "profile-consistency"
+      }
+    }
+  ]
+}

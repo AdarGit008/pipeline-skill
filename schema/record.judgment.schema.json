@@ -1,0 +1,71 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://github.com/AdarGit008/pipeline-skill/schema/record.judgment.schema.json",
+  "title": "judgment record — records/judgments/JDG-NNNN.json",
+  "description": "One judgment, one owned file — the sign-off ledger every manual rule, deviation, risk-acceptance, and break-glass in the catalog resolves through. Field-identical to baseline-skill's judgment record (a repo running both skills shares one records/judgments/ tree; each checker evaluates the subjects it knows). Kinds: 'sign-off' (a dated human judgment satisfying a manual rule; subject = rule id) · 'deviation' (an accepted rule violation — CI-03, ENV-02, IAC-03, IAC-06, DESC-03 escapes) · 'risk-acceptance' (an accepted risk with expiry + tripwire — BR-05, FLAG-03, CI-02 escapes) · 'break-glass' (a gate bypass — HOT-04; additionally carries 'gate'). expected_state snapshots the world the judgment assumed, tripwire is the machine-evaluable condition that voids it, review_by expires it. Evaluated by `pipeline jdg check`; GOV-01 runs that evaluator in-check.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["record", "id", "kind", "date", "by", "subject", "reason", "review_by"],
+  "properties": {
+    "record": {
+      "type": "string",
+      "enum": ["judgment/1"],
+      "description": "Record kind + schema version."
+    },
+    "id": {
+      "type": "string",
+      "pattern": "^JDG-[0-9]{4}$",
+      "description": "The record's identity — must match the filename."
+    },
+    "kind": {
+      "type": "string",
+      "enum": ["sign-off", "deviation", "risk-acceptance", "break-glass"],
+      "description": "What species of judgment this is. A break-glass additionally carries 'gate'."
+    },
+    "date": {
+      "type": "string",
+      "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$",
+      "description": "When the judgment was made. A judgment is dated or it is not a judgment."
+    },
+    "by": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Who judged — a person, never an agent rubber-stamp."
+    },
+    "subject": {
+      "type": "string",
+      "minLength": 1,
+      "description": "What is judged: a rule id (RB-02), a scope string, or the descriptor filename."
+    },
+    "reason": {
+      "type": "string",
+      "minLength": 1,
+      "description": "The rationale — why this sign-off/deviation/risk/override holds. Exists in no diff."
+    },
+    "review_by": {
+      "type": "string",
+      "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$",
+      "description": "Expiry: the date by which this judgment must be re-made or it lapses. Every judgment expires — that is what keeps the ledger from fossilizing."
+    },
+    "expected_state": {
+      "type": "object",
+      "description": "Snapshot of the world the judgment assumed: a map of dotted fact path -> expected value (e.g. {\"descriptor.profile\": \"critical\"}). Machine-comparable by `pipeline jdg check`. Facts namespace: descriptor.* · planes.* · git.* · today."
+    },
+    "tripwire": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["fact", "op"],
+      "description": "The condition that VOIDS this judgment when it becomes true — how the engine detects the accepted world changed. Date-valued comparands are computed at authoring time and stored as literals (the evaluator only compares a fact against a literal).",
+      "properties": {
+        "fact": { "type": "string", "minLength": 1, "description": "Dotted derived-fact path (same namespace expected_state uses)." },
+        "op": { "type": "string", "enum": ["eq", "ne", "gt", "lt", "exists", "absent"], "description": "Comparison; 'exists'/'absent' take no value." },
+        "value": { "description": "Comparand for eq/ne/gt/lt — any JSON value." }
+      }
+    },
+    "gate": {
+      "type": "string",
+      "minLength": 1,
+      "description": "break-glass only: a free-form string naming the bypassed mechanism (e.g. 'ruleset:main', 'environment:production'). Delta vs baseline's admit|reconcile enum — pipeline-skill v1 has no admit/reconcile gates (ARCHITECTURE §7.5)."
+    }
+  }
+}

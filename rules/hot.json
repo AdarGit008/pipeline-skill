@@ -1,0 +1,135 @@
+{
+  "rules": [
+    {
+      "id": "HOT-01",
+      "title": "A hotfix path is documented",
+      "category": "hot",
+      "severity": "warn",
+      "profile": "team",
+      "applies_to": [
+        "service",
+        "app",
+        "infra"
+      ],
+      "source": "https://nvie.com/posts/a-successful-git-branching-model/; https://docs.gitlab.com/user/project/repository/branches/strategies/",
+      "lesson": "critical production defects warrant an expedited path branching from production, and an official source states the process must be defined and enforced. Checks the hotfix documentation, never mandates the full GitFlow branch set",
+      "rationale": "Critical production defects warrant an expedited path branching from production, and an official source states the process must be defined and enforced — which is what this check verifies. nvie’s own 2020 reflection scopes GitFlow to versioned software, so the rule checks the hotfix documentation (branch off main, expedited pipeline, named approver), never mandates the full branch set.",
+      "fix": "Add a hotfix section (templates/hotfix.md): branch off the production tag (BR-06 guarantees one exists), which checks still run, who may approve the expedited merge.",
+      "sources": [
+        "tree"
+      ],
+      "on_unreachable": "skip",
+      "contexts": [
+        "check"
+      ],
+      "certainty": "deterministic",
+      "check": {
+        "kind": "file-contains",
+        "globs": [
+          "CONTRIBUTING.md",
+          "README.md",
+          "docs/*.md",
+          "runbooks/**/*.md"
+        ],
+        "pattern": "(?=[\\s\\S]*hotfix)(?=[\\s\\S]*(branch|branched off|from main|from master|from prod))(?=[\\s\\S]*(approv|review|sign.?off))"
+      }
+    },
+    {
+      "id": "HOT-02",
+      "title": "Hotfixes are back-merged into development branches",
+      "category": "hot",
+      "severity": "warn",
+      "profile": "critical",
+      "applies_to": [
+        "service",
+        "app"
+      ],
+      "source": "https://nvie.com/posts/a-successful-git-branching-model/; https://docs.gitlab.com/user/project/repository/branches/strategies/",
+      "lesson": "a hotfix that never reaches the development line silently regresses in the next release. History heuristic proves practice where hotfix history exists; zero-hotfix repos fall through to the sign-off arm, never a vacuous pass",
+      "rationale": "A hotfix that never reaches the development line silently regresses in the next release — the canonical source states the safeguard rationale verbatim. The history heuristic proves practice where hotfix history exists; a repo with zero hotfixes so far falls through to the sign-off arm rather than passing vacuously.",
+      "fix": "Back-merge the named hotfix branches into the development line; no hotfix history yet → dated sign-off that back-merge is the agreed practice, with review_by.",
+      "sources": [
+        "history",
+        "ledger"
+      ],
+      "on_unreachable": "skip",
+      "contexts": [
+        "check"
+      ],
+      "certainty": "heuristic",
+      "check": {
+        "kind": "any-of",
+        "checks": [
+          {
+            "kind": "hotfix-backmerge"
+          },
+          {
+            "kind": "signoff"
+          }
+        ]
+      }
+    },
+    {
+      "id": "HOT-03",
+      "title": "An incident response doc exists before the incident",
+      "category": "hot",
+      "severity": "warn",
+      "profile": "team",
+      "applies_to": [
+        "service",
+        "app"
+      ],
+      "source": "https://sre.google/sre-book/managing-incidents/; https://sre.google/sre-book/emergency-response/",
+      "lesson": "response must be prepared and documented in advance, and the documented failure mode includes the doc being unfindable — so the check enforces a conventional path. Deploy-failure lens on baseline OPS-05",
+      "rationale": "Response must be prepared and documented in advance — SRE Book’s own checklist sentence — and the documented failure mode includes the doc existing but being unfindable, so the check enforces a conventional path. Deploy-failure-scoped lens on baseline OPS-05’s artifact class (who to page, first diagnostic moves, escalation).",
+      "fix": "Add docs/incident-response.md (or a runbook section): who to page, first diagnostic moves for a failed deploy, escalation order (templates/incident-response.md).",
+      "sources": [
+        "tree"
+      ],
+      "on_unreachable": "skip",
+      "contexts": [
+        "check"
+      ],
+      "certainty": "deterministic",
+      "check": {
+        "kind": "file-contains",
+        "globs": [
+          "RUNBOOK.md",
+          "runbooks/**/*.md",
+          "docs/incident*.md",
+          "docs/oncall*.md",
+          "docs/runbooks/**/*.md"
+        ],
+        "pattern": "(?=[\\s\\S]*(incident|outage|deploy fail|rollback))(?=[\\s\\S]*(escalat|on-call|on call|pager|paging|contact|who to call))"
+      }
+    },
+    {
+      "id": "HOT-04",
+      "title": "Break-glass events are recorded, owned, and expiring",
+      "category": "hot",
+      "severity": "warn",
+      "profile": "critical",
+      "applies_to": [
+        "service",
+        "app",
+        "infra"
+      ],
+      "source": "https://nvlpubs.nist.gov/nistpubs/SpecialPublications/NIST.SP.800-53r5.pdf; https://docs.github.com/en/repositories/configuring-branches-and-merges-in-your-repository/managing-rulesets/creating-rulesets-for-a-repository; https://docs.github.com/en/repositories/configuring-branches-and-merges-in-your-repository/managing-rulesets/managing-rulesets-for-a-repository",
+      "lesson": "emergency bypass of a release gate is legitimate when audited and role-scoped — bypass without a record is the failure. Recorded+owned+reviewed is sourced; time-bounded rests on the baseline ledger review_by precedent. Forge cross-ref behind a capability probe",
+      "rationale": "Emergency bypass of a release gate is legitimate when audited and role-scoped — bypass without a record is the failure, not the bypass itself. The ledger entry is the mechanism: every break-glass judgment names the gate it relieved and its owner, and expires. Forge Rule-Insights cross-ref is best-effort behind a capability probe; its absence is always \"forge: not consulted\", never a failure.",
+      "fix": "After any gate bypass, land a break-glass record via its own PR: pipeline jdg new --kind break-glass --gate environment:production --subject \"deploy v1.4.2 bypass\" --reason \"...\" --review-by <date>. Review bypass history via GitHub Rule Insights.",
+      "sources": [
+        "ledger",
+        "forge"
+      ],
+      "on_unreachable": "skip",
+      "contexts": [
+        "check"
+      ],
+      "certainty": "deterministic",
+      "check": {
+        "kind": "breakglass-ledger"
+      }
+    }
+  ]
+}

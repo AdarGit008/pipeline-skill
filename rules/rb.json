@@ -1,0 +1,144 @@
+{
+  "rules": [
+    {
+      "id": "RB-01",
+      "title": "A rollback path is documented",
+      "category": "rb",
+      "severity": "blocker",
+      "applies_to": "all",
+      "source": "https://cloud.google.com/blog/products/gcp/reliable-releases-and-rollbacks-cre-life-lessons; https://sre.google/resources/practices-and-processes/twenty-years-of-sre-lessons-learned/",
+      "lesson": "the rollback plan must exist before the deploy that needs it — \"better to have a well-thought out plan in place instead of trying to make one up when your service is on fire\". Holds at solo. Deploy-scoped twin of baseline OPS-05",
+      "rationale": "The rollback plan must exist before the deploy that needs it — the strongest sentence in the corpus, and it holds at solo (the tier whose whole posture is fast recovery). Deploy-scoped twin of baseline OPS-05: this scans for revert/redeploy steps, not a generic runbook.",
+      "fix": "Add a rollback section to the README or a runbook: how to revert/redeploy-previous for this repo’s deploy mechanism (templates/runbook-rollback.md).",
+      "sources": [
+        "tree"
+      ],
+      "on_unreachable": "skip",
+      "contexts": [
+        "check"
+      ],
+      "certainty": "deterministic",
+      "check": {
+        "kind": "file-contains",
+        "globs": [
+          "RUNBOOK.md",
+          "runbooks/**/*.md",
+          "docs/runbooks/**/*.md",
+          "README.md",
+          "docs/*.md"
+        ],
+        "pattern": "(?=[\\s\\S]*(rollback|roll back|revert|redeploy))(?=[\\s\\S]*(deploy|release|version|previous))"
+      }
+    },
+    {
+      "id": "RB-02",
+      "title": "Rollback is verified by drill",
+      "category": "rb",
+      "severity": "manual",
+      "profile": "critical",
+      "applies_to": [
+        "service",
+        "app",
+        "infra"
+      ],
+      "source": "https://cloud.google.com/blog/products/gcp/reliable-releases-and-rollbacks-cre-life-lessons; https://docs.aws.amazon.com/wellarchitected/latest/reliability-pillar/rel_testing_resiliency_game_days_resiliency.html; https://sre.google/resources/practices-and-processes/twenty-years-of-sre-lessons-learned/",
+      "lesson": "a documented-but-never-exercised rollback is the named anti-pattern; recovery capability is demonstrated, not asserted. Three primary sources converge — sign-off-only is deliberate (a drill can’t be observed at rest)",
+      "rationale": "A documented-but-never-exercised rollback is the named anti-pattern; recovery capability is demonstrated, not asserted. Three independent primary sources converge, so the sign-off-only design is deliberate: the checker can’t observe a drill at rest, so a dated judgment with a tripwire is the honest mechanism.",
+      "fix": "Run a rollback drill (roll back the last deploy in staging, time it, note traps), then pipeline jdg new --kind sign-off --subject RB-02 --reason \"drilled <date>: <what happened>\" --review-by <date>.",
+      "sources": [
+        "ledger"
+      ],
+      "on_unreachable": "skip",
+      "contexts": [
+        "check"
+      ],
+      "certainty": "judgment",
+      "check": {
+        "kind": "signoff",
+        "review_by_days_from_config": "rollback_drill_days",
+        "default_days": 90
+      }
+    },
+    {
+      "id": "RB-03",
+      "title": "A mechanical fast-rollback path exists",
+      "category": "rb",
+      "severity": "warn",
+      "profile": "team",
+      "applies_to": [
+        "service",
+        "app",
+        "infra"
+      ],
+      "source": "https://cloud.google.com/blog/products/gcp/reliable-releases-and-rollbacks-cre-life-lessons",
+      "lesson": "\"easy to perform\" is the mechanical property checked at rest — a rollback that requires re-engineering the deploy under pressure is not a rollback path. \"trusted to be low-risk\" is RB-02’s drill residue",
+      "rationale": "\"Easy to perform\" is the mechanical property this check looks for at rest — a rollback that requires re-engineering the deploy under pressure is not a rollback path. A workflow_dispatch version input enabling redeploy-previous, or a documented revert-and-redeploy flow. Heuristic.",
+      "fix": "Add a workflow_dispatch version input to the deploy workflow that deploys an arbitrary prior ref; or document the revert-and-redeploy flow precisely in the runbook.",
+      "sources": [
+        "tree"
+      ],
+      "on_unreachable": "skip",
+      "contexts": [
+        "check"
+      ],
+      "certainty": "heuristic",
+      "check": {
+        "kind": "any-of",
+        "checks": [
+          {
+            "kind": "grep",
+            "globs": [
+              ".github/workflows/*.yml",
+              ".github/workflows/*.yaml",
+              ".gitlab-ci.yml",
+              "Jenkinsfile",
+              ".circleci/config.yml",
+              "azure-pipelines.yml"
+            ],
+            "pattern": "workflow_dispatch[\\s\\S]{0,400}?(version|ref|sha|tag):",
+            "mode": "present"
+          },
+          {
+            "kind": "file-contains",
+            "globs": [
+              "RUNBOOK.md",
+              "runbooks/**/*.md",
+              "docs/runbooks/**/*.md",
+              "README.md",
+              "docs/*.md"
+            ],
+            "pattern": "(?=[\\s\\S]*(git revert|revert))(?=[\\s\\S]*redeploy)"
+          }
+        ]
+      }
+    },
+    {
+      "id": "RB-04",
+      "title": "A recovery objective is declared and reviewed",
+      "category": "rb",
+      "severity": "manual",
+      "profile": "critical",
+      "applies_to": [
+        "service",
+        "app"
+      ],
+      "source": "https://dora.dev/guides/dora-metrics/; https://sre.google/sre-book/service-level-objectives/; https://sre.google/sre-book/managing-incidents/",
+      "lesson": "recovery time is a first-class measured objective; declare-measure-review is precisely this ledger entry. Narrowed: sources support measure-and-review, not blanket gates. The declaration is machine-readable; whether it is met is human judgment. DORA renamed MTTR → FDRT (2023)",
+      "rationale": "Recovery time is a first-class measured objective, and the SRE governance pattern — declare an objective, measure it, review the gap against actuals — is precisely this ledger entry. The declaration (descriptor recovery_objective) is machine-readable; whether it is met is dated human judgment. Absent objective yields WARN-level detail on the sign-off finding.",
+      "fix": "Declare recovery_objective in the descriptor (e.g. \"failed deployment recovery time < 30 min\"), then review it against the incident/drill record each period and sign off with evidence. Use the current DORA name (failed deployment recovery time).",
+      "sources": [
+        "tree",
+        "ledger"
+      ],
+      "on_unreachable": "skip",
+      "contexts": [
+        "check"
+      ],
+      "certainty": "judgment",
+      "check": {
+        "kind": "signoff",
+        "descriptor_field": "recovery_objective"
+      }
+    }
+  ]
+}

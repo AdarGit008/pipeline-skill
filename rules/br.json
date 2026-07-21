@@ -1,0 +1,162 @@
+{
+  "rules": [
+    {
+      "id": "BR-01",
+      "title": "Default branch is protected",
+      "category": "br",
+      "severity": "warn",
+      "profile": "team",
+      "applies_to": "all",
+      "source": "https://docs.github.com/en/repositories/configuring-branches-and-merges-in-your-repository/managing-protected-branches/about-protected-branches",
+      "lesson": "green CI means nothing if anyone can force-push to the default branch; protection is a forge fact, so ask the forge, not a committed description of it",
+      "rationale": "Green CI means nothing if anyone can force-push or commit directly to the default branch; protection is a forge fact, so the rule asks the forge rather than trusting a committed description of it.",
+      "fix": "Add a ruleset/protected-branch rule on the default branch disallowing force-push and requiring PR flow: gh api repos/{owner}/{repo}/rulesets --input <ruleset.json>.",
+      "sources": [
+        "forge"
+      ],
+      "on_unreachable": "skip",
+      "contexts": [
+        "check"
+      ],
+      "certainty": "deterministic",
+      "check": {
+        "kind": "forge-protection",
+        "gov": "protection"
+      }
+    },
+    {
+      "id": "BR-02",
+      "title": "PR review is required",
+      "category": "br",
+      "severity": "warn",
+      "profile": "team",
+      "applies_to": "all",
+      "source": "https://dora.dev/research/2023/dora-report/2023-dora-accelerate-state-of-devops-report.pdf; https://dora.dev/capabilities/streamlining-change-approval/",
+      "lesson": "review is the team’s knowledge-distribution mechanism and the lightweight gate DORA’s evidence supports; the requirement must live in forge settings, not a contributing doc",
+      "rationale": "Review is the team’s knowledge-distribution mechanism and the lightweight gate DORA’s evidence supports (in contrast to external heavyweight approval); the requirement must live in forge settings, not in a contributing doc.",
+      "fix": "Set required approving reviews ≥ 1 in the branch ruleset/protection settings.",
+      "sources": [
+        "forge"
+      ],
+      "on_unreachable": "skip",
+      "contexts": [
+        "check"
+      ],
+      "certainty": "deterministic",
+      "check": {
+        "kind": "forge-protection",
+        "gov": "reviews",
+        "min_reviews": 1
+      }
+    },
+    {
+      "id": "BR-03",
+      "title": "Required status checks gate the default branch",
+      "category": "br",
+      "severity": "warn",
+      "severity_by_profile": {
+        "critical": "blocker"
+      },
+      "profile": "team",
+      "applies_to": "all",
+      "source": "https://docs.github.com/en/repositories/configuring-branches-and-merges-in-your-repository/managing-protected-branches/about-protected-branches; https://docs.gitlab.com/user/project/merge_requests/auto_merge/",
+      "lesson": "every change built and tested, failing pipeline blocks merge; verify the enforcement mechanism (required checks on the integration branch, strict/up-to-date). Escalates to blocker at critical (deterministic forge read)",
+      "rationale": "Every change built and tested, failing pipeline blocks merge. The check verifies the enforcement mechanism both forges document — required checks on the integration branch, in strict/up-to-date mode so a stale branch can’t merge green. Deterministic, so the critical-tier blocker escalation is lawful.",
+      "fix": "In the ruleset, require the pipeline’s status checks and enable \"require branches to be up to date before merging\".",
+      "sources": [
+        "forge"
+      ],
+      "on_unreachable": "skip",
+      "contexts": [
+        "check"
+      ],
+      "certainty": "deterministic",
+      "check": {
+        "kind": "forge-protection",
+        "gov": "required-checks",
+        "strict": true,
+        "check_names_from_config": "required_check_names"
+      }
+    },
+    {
+      "id": "BR-04",
+      "title": "Declared branching model matches observed branches",
+      "category": "br",
+      "severity": "warn",
+      "profile": "team",
+      "applies_to": "all",
+      "source": "https://dora.dev/capabilities/trunk-based-development/",
+      "lesson": "the descriptor declares a model; the remote either carries that shape or the declaration is fiction. Flags the mismatch, not the model — no source condemns GitFlow",
+      "rationale": "The descriptor declares a model (trunk / dev-staging-main / gitflow); the remote either carries that shape or the declaration is fiction. The rule flags the mismatch, not the model — no primary source condemns GitFlow-style models, and none is enforced here.",
+      "fix": "Align the remote with the declaration (create/prune tier branches) or correct branching_model in the descriptor.",
+      "sources": [
+        "history",
+        "forge"
+      ],
+      "on_unreachable": "skip",
+      "contexts": [
+        "check"
+      ],
+      "certainty": "deterministic",
+      "check": {
+        "kind": "branch-model"
+      }
+    },
+    {
+      "id": "BR-05",
+      "title": "No stale unmerged long-lived branches",
+      "category": "br",
+      "severity": "warn",
+      "profile": "team",
+      "applies_to": "all",
+      "source": "https://dora.dev/capabilities/trunk-based-development/",
+      "lesson": "stale unmerged branches are batch-size inflation; flags staleness, never the model. A justified long-lived branch is a dated risk-acceptance",
+      "rationale": "Stale unmerged branches are batch-size inflation: they concentrate merge risk and quietly become the release train nobody rides. The rule flags staleness, never the branch model itself; a justified long-lived branch is a dated risk-acceptance.",
+      "fix": "Merge, rebase, or delete the named branches; for a deliberately long-lived branch, pipeline jdg new --kind risk-acceptance --subject BR-05 --reason \"...\" --review-by <date>.",
+      "sources": [
+        "history"
+      ],
+      "on_unreachable": "skip",
+      "contexts": [
+        "check"
+      ],
+      "certainty": "heuristic",
+      "check": {
+        "kind": "stale-branches",
+        "days_from_config": "stale_branch_days",
+        "default_days": 30
+      }
+    },
+    {
+      "id": "BR-06",
+      "title": "Release points are marked",
+      "category": "br",
+      "severity": "warn",
+      "applies_to": "all",
+      "source": "https://nvie.com/posts/a-successful-git-branching-model/",
+      "lesson": "a marked production version is what a hotfix branches from and what \"redeploy previous\" points at; without tags/releases there is no shared name for \"what’s live\". Young repos SKIP (grace)",
+      "rationale": "A marked production version is what a hotfix branches from and what \"redeploy previous\" points at; without tags or releases there is no shared name for \"what’s live\". Repos younger than the grace window return not-evaluable so a trunk shop that hasn’t cut its first release is never wallpapered.",
+      "fix": "Tag the current production ref (git tag v0.1.0 <sha> && git push --tags) or cut a forge release; wire a release workflow if releases are pipeline-made.",
+      "sources": [
+        "tree",
+        "history",
+        "forge"
+      ],
+      "on_unreachable": "skip",
+      "contexts": [
+        "check"
+      ],
+      "certainty": "deterministic",
+      "check": {
+        "kind": "release-marks",
+        "grace_days_from_config": "release_mark_grace_days",
+        "default_grace_days": 90,
+        "release_workflow_globs": [
+          ".github/workflows/*release*",
+          ".github/workflows/*release*.yml",
+          ".github/workflows/*release*.yaml"
+        ]
+      }
+    }
+  ]
+}

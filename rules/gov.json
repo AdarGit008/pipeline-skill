@@ -1,0 +1,26 @@
+{
+  "rules": [
+    {
+      "id": "GOV-01",
+      "title": "The judgment ledger is healthy",
+      "category": "gov",
+      "severity": "blocker",
+      "applies_to": "all",
+      "source": "machinery — baseline record.judgment.schema.json + jdg check semantics (expected_state/tripwire/review_by)",
+      "lesson": "every sign-off, deviation, risk-acceptance, and break-glass resolves through the ledger; an expired/tripped/invalid record silently voids the rule it satisfied. A scored blocker keeps the human-judgment half from fossilizing",
+      "rationale": "Every sign-off, deviation, risk-acceptance, and break-glass in this catalog resolves through the ledger; an expired, tripped, or invalid record silently voids the rule it was satisfying. Making ledger health a scored blocker is what keeps the human-judgment half of the standard from fossilizing — the same reason jdg check exits 1.",
+      "fix": "Re-make or retire the named judgments (pipeline jdg new ... with fresh review_by; satisfy or remove tripwires); pipeline jdg check reproduces the evaluation standalone.",
+      "sources": [
+        "ledger"
+      ],
+      "on_unreachable": "skip",
+      "contexts": [
+        "check"
+      ],
+      "certainty": "deterministic",
+      "check": {
+        "kind": "jdg-health"
+      }
+    }
+  ]
+}
