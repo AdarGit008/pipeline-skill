@@ -1,0 +1,32 @@
+IDEAS
+
+- A typical enterprise team includes around ten developers, a scrum master, project manager, and UX designers.
+- The client acts as a middleman between developers and actual end users, conveying requirements and vision.
+- Developers break into small groups for ensemble programming to jointly work on feature branches daily.
+- Feature branches are merged via pull requests reviewed by peers for knowledge sharing and quality.
+- A CI/CD pipeline automatically builds, tests, and deploys code when a pull request is merged.
+- Dev branches allow daily integration; each merge deploys a full cloud environment with simulated data.
+- Staging environments mirror production with realistic data, enabling user feedback and automated load tests.
+- Feature flags let teams deploy unfinished code safely and toggle features on or off in production.
+- Infrastructure as code ensures consistent, repeatable cloud resource provisioning across all deployment environments.
+- Multi-region architectures provide high availability by duplicating entire infrastructures across geographic locations.
+- Active-active setups serve users from the closest region, requiring complex data replication and synchronization.
+- Data sovereignty laws restrict cross-border replication, adding legal constraints to multi-region system designs.
+- Bug incidents trigger feature flag toggles first, then rollbacks or hotfix branches directly from main.
+- Hotfixes require back-merging into dev branches afterwards to keep all environments aligned with latest fixes.
+- Startups often skip complex environments, pushing straight to production and fixing bugs quickly instead.
+- Enterprise pipelines add complexity primarily to mitigate risk in systems where downtime causes severe harm.
+- Healthcare and critical systems justify rigorous testing and staging to prevent widespread service disruptions.
+- Large-scale projects duplicate the single-team process across multiple teams, coordinated by higher-level managers.
+- Scrum masters ensure agile meetings follow guidelines, while project managers track deliverables and client alignment.
+- Demoing features to clients and users gathers direct feedback to refine the software iteratively.
+- Version control with git underpins the entire workflow, coordinating multiple contributors on one codebase.
+- Code reviews distribute system knowledge across the team, reducing dependency on specific individuals.
+- Merging to the main branch triggers the final deployment pipeline that ships the feature to real users.
+- Automated smoke and load tests in staging catch performance issues before production releases go live.
+- Experimental environments can be spun up instantly using infrastructure as code for isolated developer testing.
+- In active-passive setups, all users redirect to a standby region when the primary region fails.
+- Rolling back a deployment might simply revert a Lambda function to its previous version.
+- Feature flag databases store boolean toggles that clients can change to activate features selectively.
+- The typical enterprise workflow involves dev, staging, and main branches corresponding to separate cloud environments.
+- Complexity in deployment pipelines is avoided unless explicitly required by team process or regulatory demands.
