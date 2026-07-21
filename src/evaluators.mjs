@@ -14,7 +14,7 @@ import { execFileSync } from 'node:child_process'
 import { asArr, parseDate } from './repo.mjs'
 import { loadJudgments, loadFlags, selectSignoffs, gatherJdgFacts, ledgerHealth } from './jdg.mjs'
 
-// Every kind evalCheck() knows how to run; --self-check (chunk #5) flags any rule check.kind not in here.
+// Every kind evalCheck() knows how to run; --self-check (src/selfcheck.mjs) flags any rule check.kind not in here.
 export const CHECK_KINDS = new Set([
   'any-of', 'any-file', 'grep', 'file-contains', 'json-field', 'descriptor', 'descriptor-valid', 'workflow-state', 'forge-protection', 'signoff',
   'profile-consistency', 'branch-model', 'stale-branches', 'release-marks', 'env-inventory', 'env-deploy-path', 'env-trigger', 'env-protection', 'workflow-job-order', 'iac-state', 'iac-secrets', 'flag-registry', 'hotfix-backmerge', 'jdg-health', 'breakglass-ledger',
