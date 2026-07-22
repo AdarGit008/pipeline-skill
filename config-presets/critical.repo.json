@@ -1,0 +1,23 @@
+{
+  "_preset": "critical — highest failure cost. Adds gated prod promotion (ENV-04 becomes a BLOCKER), staging data realism (ENV-05 sign-off), rollback DRILLS (RB-02 sign-off), drift detection, and break-glass accounting (HOT-04). BR-03 is also a blocker here. Declaring this tier is a commitment: it activates the full sign-off surface — record real dated judgments with `pipeline jdg new`, never rubber-stamps. Copy to <repo>/pipeline.repo.json and set every field to reality.",
+  "type": "service",
+  "profile": "critical",
+  "branching_model": "dev-staging-main",
+  "default_branch": "main",
+  "environments": [
+    { "name": "dev", "tier": "dev" },
+    { "name": "staging", "tier": "staging", "gated": true },
+    { "name": "production", "tier": "prod", "gated": true }
+  ],
+  "iac": {
+    "tool": "terraform",
+    "state_backend": "s3"
+  },
+  "uses_feature_flags": true,
+  "branches": {
+    "integration": "dev",
+    "staging": "staging",
+    "production": "main"
+  },
+  "recovery_objective": "FDRT target: detect a failed deploy within 5 minutes (alerting) and recover within 30 minutes via gated redeploy-previous; reviewed against real incidents/drills quarterly (RB-04)."
+}

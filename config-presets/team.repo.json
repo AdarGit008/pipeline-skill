@@ -1,0 +1,23 @@
+{
+  "_preset": "team — adds shared-delivery discipline on top of solo: a protected default branch, PR review ≥1, every declared environment with an automated deploy path, IaC that isn't console-clicking, and a documented hotfix path. BR-03 and ENV-04 are WARNINGS at this tier (they become blockers at critical). Copy to <repo>/pipeline.repo.json and set the fields to reality — especially the environment names and branch names.",
+  "type": "service",
+  "profile": "team",
+  "branching_model": "dev-staging-main",
+  "default_branch": "main",
+  "environments": [
+    { "name": "dev", "tier": "dev" },
+    { "name": "staging", "tier": "staging" },
+    { "name": "production", "tier": "prod", "gated": true }
+  ],
+  "iac": {
+    "tool": "terraform",
+    "state_backend": "s3"
+  },
+  "uses_feature_flags": false,
+  "branches": {
+    "integration": "dev",
+    "staging": "staging",
+    "production": "main"
+  },
+  "recovery_objective": "Roll back via redeploy-previous or `git revert`; target service restored within 30 minutes, verified by the deploy smoke test."
+}

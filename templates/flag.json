@@ -1,0 +1,11 @@
+{
+  "_help": "One feature flag, one file: records/flags/FLAG-NNNN.json (schema/record.flag.schema.json). The FLAG family is opt-in — it activates when the descriptor sets uses_feature_flags:true or records/flags/ is non-empty. FLAG-02 requires a non-empty `owner` (who can turn this off?); FLAG-03 requires `review_by` present and not past-due unless type ∈ {kill-switch, permission} (permanent-class: reviewed within permanent_flag_review_days, default 365). Default review horizons (Unleash's shipped lifetimes): release 40d · experiment 40d · operational 7d · sunset 90d. Keys starting with _ are ignored (additionalProperties:false on this record — remove _help before committing). `cp templates/flag.json records/flags/FLAG-NNNN.json` per live flag, then fill the fields.",
+  "record": "flag/1",
+  "id": "FLAG-0001",
+  "name": "new-checkout-flow",
+  "owner": "your-handle",
+  "type": "release",
+  "created": "2026-07-21",
+  "review_by": "2026-08-30",
+  "notes": "Gates the redesigned checkout behind a percentage rollout. Removal plan: delete the flag and the old path once 100% for two weeks."
+}

@@ -1,0 +1,13 @@
+{
+  "_help": "One judgment, one file: records/judgments/JDG-NNNN.json (schema/record.judgment.schema.json). kind ∈ sign-off | deviation | risk-acceptance | break-glass. Every judgment is dated, owned (by), scoped (subject), reasoned, and EXPIRES (review_by). expected_state snapshots the world you assumed; tripwire is the machine-evaluable condition that voids the judgment when that world changes; a break-glass also names the `gate` it relieved and lands on the default branch via its own PR. Author + evaluate with `pipeline jdg new|check`; GOV-01 runs the evaluator in-check so an expired/tripped judgment can't silently void the rule it satisfied. Facts namespace: descriptor.* · planes.* · git.* · today. Keys starting with _ are ignored (additionalProperties:false on this record — remove the _help before committing, or keep only real fields). Never fake a sign-off: a real dated judgment by a person, or nothing.",
+  "record": "judgment/1",
+  "id": "JDG-0001",
+  "kind": "sign-off",
+  "date": "2026-07-21",
+  "by": "your-handle",
+  "subject": "RB-02",
+  "reason": "Rollback drill run 2026-07-18: redeployed the previous image in staging, confirmed traffic drained in 4m, no data migration to reverse. Evidence: runbooks/drills/2026-07-18.md.",
+  "review_by": "2026-10-19",
+  "expected_state": { "descriptor.profile": "critical" },
+  "tripwire": { "fact": "descriptor.profile", "op": "ne", "value": "critical" }
+}
