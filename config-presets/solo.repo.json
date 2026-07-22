@@ -1,0 +1,12 @@
+{
+  "_preset": "solo — the delivery floor. Core rules only; team/critical rules SKIP as n/a. The pipeline must exist, be automated, and be alive, and a rollback path is documented — no required review, no staging tier, no IaC mandate. Copy to <repo>/pipeline.repo.json, then set type + default_branch to reality. Declare a higher tier only when you'll actually carry its process (DESC-03 checks the declaration against reality).",
+  "type": "service",
+  "profile": "solo",
+  "branching_model": "trunk",
+  "default_branch": "main",
+  "environments": [
+    { "name": "production", "tier": "prod" }
+  ],
+  "uses_feature_flags": false,
+  "recovery_objective": "Redeploy the previous release to restore service within 30 minutes of a bad deploy."
+}

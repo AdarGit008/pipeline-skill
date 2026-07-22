@@ -1,0 +1,30 @@
+{
+  "_help": "The repo's delivery posture — the one file pipeline requires (schema: schema/repo.schema.json). Copy this to <repo>/pipeline.repo.json as the first act of adoption, then set every field to reality. Its `type` supersedes filesystem auto-detection; its `profile` picks the failure-cost tier the standard holds you to. Keys starting with _ are inline notes and ride through (additionalProperties). Prefer a config-presets/*.repo.json starting point over this blank when a tier fits.",
+  "type": "service",
+  "_type": "service | app | library | docs | infra — what this repo IS. Supersedes auto-detection.",
+  "profile": "solo",
+  "_profile": "solo | team | critical — declared failure cost. Tiers are cumulative (core ⊂ team ⊂ critical). Declare what you'll actually carry; DESC-03 compares the declaration to observed reality.",
+  "branching_model": "trunk",
+  "_branching_model": "trunk | dev-staging-main | gitflow — drives BR-04's expected refs and the `branches` fallbacks.",
+  "default_branch": "main",
+  "_default_branch": "The integration/release branch (e.g. main). Non-empty.",
+  "environments": [
+    { "name": "production", "tier": "prod", "gated": false }
+  ],
+  "_environments": "Declared deploy targets. Each needs name + tier (dev | staging | prod); `gated` marks a promotion gate (ENV-04 verifies protection on the prod-tier entry). Consumed by ENV-01..05.",
+  "iac": {
+    "tool": "terraform",
+    "state_backend": "s3"
+  },
+  "_iac": "Optional. tool ∈ terraform | pulumi | cdk | serverless | cloudformation | bicep; state_backend names remote state. Omit the whole block if this repo ships no infrastructure as code.",
+  "uses_feature_flags": false,
+  "_uses_feature_flags": "true (or a non-empty records/flags/ dir) activates the opt-in FLAG family.",
+  "branches": {
+    "integration": "main",
+    "staging": "staging",
+    "production": "main"
+  },
+  "_branches": "Optional tier-branch names. Unset keys fall back to branching_model conventions: trunk → default_branch; gitflow → develop; dev-staging-main → dev/staging/default_branch. Consumed by BR-04, ENV-03, HOT-02.",
+  "recovery_objective": "Restore service within 30 minutes of a failed deploy via redeploy-previous.",
+  "_recovery_objective": "One line stating the target recovery posture (FDRT: failure-detection-to-recovery-time). Reviewed against reality by RB-04 (sign-off)."
+}
