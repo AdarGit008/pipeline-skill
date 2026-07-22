@@ -58,8 +58,24 @@ test('pipeline check delegates to check.mjs and inherits exit 0 (clean)', t => {
 })
 
 test('pipeline with a leading --flag is treated as check (inherits exit 1 on a blocker)', t => {
-  const { dir } = mkRepo(t, { files: { 'README.md': '# no descriptor, no runbook' } }) // RB-01 blocker fires
+  const { dir } = mkRepo(t, { files: { 'go.mod': 'module x\n' } }) // detects service → CI-01/RB-01 blockers fire
   assert.equal(runPipeline(['--repo', dir]).status, 1)
+})
+
+test('RB-01 is n/a for a docs repo — a missing rollback note is not a blocker (follow-up #9)', t => {
+  const { dir } = mkRepo(t, { files: { 'pipeline.repo.json': { type: 'docs', profile: 'solo', branching_model: 'trunk', default_branch: 'main' } } })
+  const r = runCheck(['--repo', dir, '--json'])
+  assert.equal(r.status, 0)
+  const j = JSON.parse(r.stdout)
+  assert.equal(j.summary.blockers, 0)
+  assert.equal(j.results.find(x => x.id === 'RB-01').tag, 'SKIP')
+})
+
+test('RB-01 still fires for a deployable (service) repo lacking a rollback note → blocker', t => {
+  const { dir } = mkRepo(t, { files: { 'go.mod': 'module x\n', 'README.md': '# no rollback here' } })
+  const r = runCheck(['--repo', dir, '--json'])
+  assert.equal(r.status, 1)
+  assert.equal(JSON.parse(r.stdout).results.find(x => x.id === 'RB-01').tag, 'FAIL')
 })
 
 test('pipeline jdg check routes to the ledger evaluator (empty ledger → exit 0)', t => {

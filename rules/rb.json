@@ -5,10 +5,14 @@
       "title": "A rollback path is documented",
       "category": "rb",
       "severity": "blocker",
-      "applies_to": "all",
+      "applies_to": [
+        "service",
+        "app",
+        "infra"
+      ],
       "source": "https://cloud.google.com/blog/products/gcp/reliable-releases-and-rollbacks-cre-life-lessons; https://sre.google/resources/practices-and-processes/twenty-years-of-sre-lessons-learned/",
       "lesson": "the rollback plan must exist before the deploy that needs it — \"better to have a well-thought out plan in place instead of trying to make one up when your service is on fire\". Holds at solo. Deploy-scoped twin of baseline OPS-05",
-      "rationale": "The rollback plan must exist before the deploy that needs it — the strongest sentence in the corpus, and it holds at solo (the tier whose whole posture is fast recovery). Deploy-scoped twin of baseline OPS-05: this scans for revert/redeploy steps, not a generic runbook.",
+      "rationale": "The rollback plan must exist before the deploy that needs it — the strongest sentence in the corpus, and it holds at solo (the tier whose whole posture is fast recovery). Deploy-scoped twin of baseline OPS-05: this scans for revert/redeploy steps, not a generic runbook. Gated to deployable types (service/app/infra, matching CI-03) so a pure docs/library repo — including a no-descriptor repo that auto-detects as docs — is not red-flagged for lacking a deploy rollback, honoring the 'a no-descriptor repo is not a red build' contract (ARCHITECTURE §5.3).",
       "fix": "Add a rollback section to the README or a runbook: how to revert/redeploy-previous for this repo’s deploy mechanism (templates/runbook-rollback.md).",
       "sources": [
         "tree"

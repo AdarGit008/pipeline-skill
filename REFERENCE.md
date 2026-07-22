@@ -153,6 +153,16 @@ not chat. One judgment, one file: `records/judgments/JDG-NNNN.json` (schema:
 - **Secrets note (build follow-up #11):** unlike baseline, `jdg new` ships no secret-scrub gate.
   A judgment `reason`/`subject` is prose you type, not harvested config — **do not embed live
   secrets** (tokens, keys) in it; the record is committed as-is.
+- **HOT-04 forge cross-ref (build follow-up #3):** HOT-04 (`breakglass-ledger`) is
+  **ledger-authoritative** — it audits every `break-glass` record (gate named, owner present,
+  unexpired) and is the source of truth for accountability. GitHub *does* expose the bypass data
+  that would let a checker cross-reference the ledger against real ruleset bypasses — the rule-suites
+  REST endpoint `GET /repos/{owner}/{repo}/rulesets/rule-suites` (and `…/{rule_suite_id}`), filterable
+  to `rule_suite_result=bypass`, returns the actor, commit SHAs, ref, and result. Wiring that
+  cross-ref (flagging a forge-side bypass with **no** matching break-glass record) is a **planned
+  enhancement**, not v0.1 behavior; today HOT-04 labels its forge note `forge: not consulted (bypass
+  cross-ref skipped)` when offline and does not query the endpoint even when online. The endpoint's
+  existence retires the "demote to a manual step" fallback the follow-up flagged.
 
 ### Flag registry — `records/flags/FLAG-NNNN.json`
 
