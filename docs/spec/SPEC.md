@@ -85,7 +85,7 @@ Plus the profile system (`solo`/`team`/`critical`) that expresses "complexity on
 - **Overlap control.** Three pipeline rules sit adjacent to baseline rules:
   - **IAC-06** (secrets in IaC files) vs baseline SEC — pipeline's rule is strictly narrower (IaC globs only, deterministic signature tier only) and its rationale cross-references baseline's SEC family rather than restating it.
   - **RB-01 / HOT-03** (rollback section / incident doc) vs baseline OPS-05 (generic runbook) — pipeline's checks are deploy-failure-scoped (revert/redeploy-previous steps; who-to-page escalation), a tighter lens on the same artifact class.
-  - A repo running both skills gets two lenses, not two competing copies. pipeline's README says so; the sibling note in baseline's README is a tracked follow-up, not part of this build.
+  - A repo running both skills gets two lenses, not two competing copies. pipeline's README acknowledges the sibling; no reciprocal note is added to baseline's README (the one-directional link suffices).
 - **Different axis.** Baseline's profiles encode *how expert* a repo is (`core/service/advanced`); pipeline's encode *declared failure cost* (`solo/team/critical`). Baseline's `project_types` are language-shaped (`node/python/service/library/docs`); pipeline's are deployment-shaped (`service/app/library/docs/infra`). Same machinery, different semantics — `ARCHITECTURE.md` §4.
 
 ## 6. Profile tiers — activation map (locked)
