@@ -1,0 +1,7 @@
+{
+  "_note": "pipeline-skill is the TOOL, not a delivery-target service — this is a minimal, honest self-descriptor so the checker scores its own repo (dog-fooding, exactly as sibling baseline-skill does). type=docs matches the docs/distribution posture in config.example.json; solo tier is the delivery floor (core rules only). The rollback path RB-01 wants lives in RUNBOOK.md.",
+  "type": "docs",
+  "profile": "solo",
+  "branching_model": "trunk",
+  "default_branch": "main"
+}
