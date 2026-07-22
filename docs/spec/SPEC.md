@@ -85,7 +85,7 @@ Plus the profile system (`solo`/`team`/`critical`) that expresses "complexity on
 - **Overlap control.** Three pipeline rules sit adjacent to baseline rules:
   - **IAC-06** (secrets in IaC files) vs baseline SEC — pipeline's rule is strictly narrower (IaC globs only, deterministic signature tier only) and its rationale cross-references baseline's SEC family rather than restating it.
   - **RB-01 / HOT-03** (rollback section / incident doc) vs baseline OPS-05 (generic runbook) — pipeline's checks are deploy-failure-scoped (revert/redeploy-previous steps; who-to-page escalation), a tighter lens on the same artifact class.
-  - A repo running both skills gets two lenses, not two competing copies. pipeline's README says so; the sibling note in baseline's README is a tracked follow-up, not part of this build.
+  - A repo running both skills gets two lenses, not two competing copies. pipeline's README acknowledges the sibling; no reciprocal note is added to baseline's README (the one-directional link suffices).
 - **Different axis.** Baseline's profiles encode *how expert* a repo is (`core/service/advanced`); pipeline's encode *declared failure cost* (`solo/team/critical`). Baseline's `project_types` are language-shaped (`node/python/service/library/docs`); pipeline's are deployment-shaped (`service/app/library/docs/infra`). Same machinery, different semantics — `ARCHITECTURE.md` §4.
 
 ## 6. Profile tiers — activation map (locked)
@@ -95,8 +95,8 @@ Tiers are **cumulative**: `core` ⊂ `team` ⊂ `critical`. Declaring `solo` act
 | Tier | Active rules (39 total) | Posture (source-anchored) |
 |---|---|---|
 | **solo** (core, 11) | DESC-01/02/03 · BR-06 · CI-01/02/03/05 · RB-01 · FLAG-01 (opt-in) · GOV-01 | "Ship directly from main with automated deploys" + "get good at deploying a fix within 30 minutes" (`wisdom.txt`). Mechanized: the pipeline exists, is automated, is alive; rollback is documented; flags optional. DORA's speed-and-stability finding anchors the posture (§2). |
-| **team** (+18) | BR-01..05 · CI-06 · ENV-01/02/03 · IAC-01/02/03/06 · FLAG-02/03 (opt-in) · RB-03 · HOT-01/03 | The ~10-dev enterprise walkthrough: PR review ≥1, protected default branch, declared environments each with an automated deploy path, IaC instead of console-clicking, documented hotfix path. Severities mostly `warning`: a team can consciously deviate via the ledger. |
-| **critical** (+10) | CI-04 · ENV-04/05/06 · IAC-04/05 · RB-02/04 · HOT-02/04 · escalation: BR-03, ENV-04 become blockers | The healthcare/five-nines posture: "if you break people's insurance that could have huge impacts." Gated prod promotion (blocker), staging data realism (sign-off), rollback drills (sign-off), drift detection, break-glass accounting. |
+| **team** (+19) | BR-01..05 · CI-06 · ENV-01/02/03/04 · IAC-01/02/03/06 · FLAG-02/03 (opt-in) · RB-03 · HOT-01/03 | The ~10-dev enterprise walkthrough: PR review ≥1, protected default branch, declared environments each with an automated deploy path, IaC instead of console-clicking, documented hotfix path. Severities mostly `warning`: a team can consciously deviate via the ledger. |
+| **critical** (+9) | CI-04 · ENV-05/06 · IAC-04/05 · RB-02/04 · HOT-02/04 · escalation: BR-03, ENV-04 become blockers | The healthcare/five-nines posture: "if you break people's insurance that could have huge impacts." Gated prod promotion (blocker), staging data realism (sign-off), rollback drills (sign-off), drift detection, break-glass accounting. |
 
 Two rules carry **profile-escalated severity** (`severity_by_profile`, the one deliberate engine delta — `ARCHITECTURE.md` §7.1): **BR-03** (required status checks incl. strict/up-to-date) and **ENV-04** (gated prod promotion) are `warning` at team, `blocker` at critical. Both are `deterministic` forge checks, so the engine law *a blocker must be deterministic* holds at every tier.
 

@@ -3,6 +3,26 @@
 All notable changes to pipeline-skill. Format loosely follows
 [Keep a Changelog](https://keepachangelog.com/); versions track `rules.json`.
 
+## [0.1.1] — unreleased
+
+Follow-up pass after v0.1.0 (docs/spec/FOLLOW-UPS.md).
+
+### Changed
+- **RB-01** (`A rollback path is documented`) narrowed from `applies_to: all` to the deployable
+  set `["service", "app", "infra"]` (matching CI-03). A pure `docs`/`library` repo — including a
+  no-descriptor repo that auto-detects as `docs` — no longer FAILs this core blocker for lacking a
+  deploy rollback, honoring ARCHITECTURE §5.3's "a no-descriptor repo is not a red build"
+  (follow-up #9).
+
+### Docs
+- Fixed the SPEC §6 profile-activation table: ENV-04 belongs in the **team** row (it activates at
+  team as a warning and escalates to a blocker at critical), so the tier split is
+  **core 11 / team 19 / critical 9** — not the 11/18/10 the table previously printed (follow-up #7,
+  vindicated by the `--self-check` coverage matrix).
+- Documented HOT-04's forge cross-ref status in REFERENCE: the GitHub rule-suites REST endpoint that
+  would power a ledger↔bypass cross-reference exists; wiring it is a planned enhancement, and HOT-04
+  is ledger-authoritative in the meantime (follow-up #3).
+
 ## [0.1.0] — 2026-07-22
 
 First implementation of the locked v0.1 spec: **39 rules across 9 families**
