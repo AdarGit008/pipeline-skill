@@ -12,12 +12,42 @@ via a dated sign-off ledger.
 
 > The premise (inherited from its sibling): *don't trust a written promise — make something check it.*
 
-## Status
+## Quickstart
 
-**Spec locked (v0.1) — implementation pending.** The build-ready spec lives in
-[`docs/spec/`](docs/spec/): `SPEC.md` (vision/scope/profiles) · `RULES.md` (the locked
-catalog, every rule with verbatim quote+URL source) · `ARCHITECTURE.md` (file map,
-engine, check kinds, ledger, config, CI wiring) · `SKILL-DRAFT.md` · `FOLLOW-UPS.md`.
+Zero dependencies. Requires **Node ≥ 18** and `git` on PATH; `gh` is optional (forge-reading
+rules degrade to labeled SKIPs when it is absent or unauthenticated). Invoke by absolute path
+— `check.mjs` loads its rule set from its own directory.
+
+```sh
+node check.mjs --repo /path/to/target        # score a repo's delivery posture (scorecard)
+node check.mjs --repo /path/to/target --json # machine output
+node check.mjs --self-check                  # validate the rule set's structural laws + coverage
+```
+
+Exit codes: `1` = a blocker FAILed · `0` = otherwise (warnings and SKIPs ride the output).
+
+Declare posture in a `pipeline.repo.json` descriptor (start from
+[`config-presets/`](config-presets/) or [`templates/pipeline.repo.json`](templates/pipeline.repo.json))
+and tune checks in an optional `pipeline.config.json` (see [`config.example.json`](config.example.json)).
+
+The judgment ledger authors and evaluates dated sign-offs, deviations, risk-acceptances, and
+break-glass records:
+
+```sh
+node pipeline.mjs jdg new --kind sign-off --subject RB-02 --reason "drill ok" --review-by 2026-10-01
+node pipeline.mjs jdg check                   # exit 1 on any tripped / expired / invalid record
+```
+
+Make a `pipeline` job a required status check so the standard runs on every PR — see
+[`.github/workflows/ci.yml`](.github/workflows/ci.yml) for this repo's self-gating setup.
+
+## Docs
+
+- **[`SKILL.md`](SKILL.md)** — the agent surface (score / init / fix / explain modes).
+- **[`REFERENCE.md`](REFERENCE.md)** — data flow, config keys, CI wiring, ledger format.
+- **[`GLOSSARY.md`](GLOSSARY.md)** — term definitions.
+- **[`docs/spec/`](docs/spec/)** — the locked v0.1 spec: `SPEC.md` · `RULES.md` (every rule
+  with a verbatim quote + URL source) · `ARCHITECTURE.md` · `SKILL-DRAFT.md` · `FOLLOW-UPS.md`.
 
 ## License
 
