@@ -3,7 +3,7 @@
 All notable changes to pipeline-skill. Format loosely follows
 [Keep a Changelog](https://keepachangelog.com/); versions track `rules.json`.
 
-## [0.1.0] — unreleased
+## [0.1.0] — 2026-07-22
 
 First implementation of the locked v0.1 spec: **39 rules across 9 families**
 (DESC, BR, CI, ENV, IAC, FLAG, RB, HOT, GOV), a zero-dependency Node ≥ 18 engine,
