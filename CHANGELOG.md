@@ -3,7 +3,7 @@
 All notable changes to pipeline-skill. Format loosely follows
 [Keep a Changelog](https://keepachangelog.com/); versions track `rules.json`.
 
-## [0.1.1] — unreleased
+## [0.1.1] — 2026-07-23
 
 Follow-up pass after v0.1.0 (docs/spec/FOLLOW-UPS.md).
 
