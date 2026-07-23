@@ -1,0 +1,19 @@
+# gitleaks config for pipeline-skill — the SEC-12 secret-scan gate (wired in ci.yml).
+#
+# Extends gitleaks' default rule set. Allowlists rules/ and docs/ because pipeline-skill
+# SHIPS secret-detection signatures (IAC-05): rules/iac.json and docs/spec/RULES.md embed
+# AWS-access-key and PEM private-key detector REGEXES (e.g. `AKIA[0-9A-Z]{16}`,
+# `-----BEGIN [A-Z ]*PRIVATE KEY-----`) — the patterns the tool hunts for, not real secrets.
+# Scanning them risks flagging the tool's own detector on its own rule data. Everything else
+# (src/, check.mjs, pipeline.mjs, configs, templates, records) is scanned normally.
+title = "pipeline-skill gitleaks config"
+
+[extend]
+useDefault = true
+
+[allowlist]
+description = "The rule data and spec carry intentional secret-detection regexes (the IAC-05 signatures), not secrets"
+paths = [
+  '''^rules/''',
+  '''^docs/''',
+]

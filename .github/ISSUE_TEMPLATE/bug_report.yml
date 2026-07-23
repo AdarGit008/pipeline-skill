@@ -1,0 +1,47 @@
+name: Bug report
+description: A rule, evaluator, CLI, or scorecard behaves incorrectly.
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for the report. For **security** vulnerabilities, do not file here —
+        follow [SECURITY.md](../blob/main/SECURITY.md) (private advisory) instead.
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened
+      description: What did the checker do, and what did you expect instead?
+      placeholder: "check.mjs --repo . marked RB-01 as FAIL, but the repo is a docs-only library…"
+    validations:
+      required: true
+  - type: textarea
+    id: repro
+    attributes:
+      label: Steps to reproduce
+      description: The exact command(s) and, if possible, the smallest repo/descriptor/config that triggers it.
+      placeholder: |
+        1. pipeline.repo.json: { "type": "library", ... }
+        2. node check.mjs --repo .
+        3. See RB-01 FAIL in the scorecard
+    validations:
+      required: true
+  - type: textarea
+    id: output
+    attributes:
+      label: Scorecard / error output
+      description: Paste the relevant scorecard rows or stack trace. `--json` output is welcome.
+      render: shell
+  - type: input
+    id: rule
+    attributes:
+      label: Rule id (if applicable)
+      placeholder: "RB-01"
+  - type: textarea
+    id: env
+    attributes:
+      label: Environment
+      description: "`node --version`, OS, and whether `gh` was present/authenticated."
+      placeholder: "node v20.11.0 · Linux · gh not installed"
+    validations:
+      required: true

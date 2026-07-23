@@ -1,0 +1,10 @@
+{
+  "record": "judgment/1",
+  "id": "JDG-0001",
+  "kind": "sign-off",
+  "date": "2026-07-23",
+  "by": "Adar",
+  "subject": "CTX-04",
+  "reason": "No frozen/consolidated doc in this repo lacks a supersede/regeneration banner. The spec of record (docs/spec/SPEC.md) carries an explicit in-file 'Status: LOCKED (taxonomy v0.1)' banner; the archived planning material under docs/archive/ is stamped 'Status: DRAFT' and is clearly superseded source; RULES.md/REFERENCE.md/SKILL.md/GLOSSARY.md are hand-maintained references, not machine-consolidated specs presented as fresh. Field-identical to baseline-skill's judgment record: this repo dogfoods both skills through one records/judgments/ tree, and this sign-off satisfies baseline's CTX-04 while remaining a healthy (non-expired, valid) entry for pipeline-skill's own GOV-01.",
+  "review_by": "2027-01-23"
+}

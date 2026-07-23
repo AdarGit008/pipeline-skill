@@ -1,0 +1,13 @@
+# pipeline-skill is zero-dependency (no package manifest, no lockfile), so the only
+# updatable surface is the SHA-pinned GitHub Actions in .github/workflows/. Dependabot
+# keeps those pins fresh (and CVE-free) without hand-tracking upstream releases. (SEC-05)
+version: 2
+updates:
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    commit-message:
+      prefix: "ci"
+    labels:
+      - "dependencies"

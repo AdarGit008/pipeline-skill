@@ -1,0 +1,9 @@
+{
+  "_note": "pipeline-skill is the TOOL (a zero-dep docs/distribution repo), not a multi-lane consumer — this is a minimal readiness-only descriptor for baseline-skill's checker, the sibling standard this repo dogfoods for guest-readiness. type matches baseline.config.json and pipeline.repo.json (both 'docs'). pipeline-skill's OWN posture lives in pipeline.repo.json.",
+  "schema_version": 1,
+  "type": "docs",
+  "lifecycle": "production",
+  "maturity": "released",
+  "workflow": "single-lane",
+  "anchoring": "off"
+}
