@@ -1,0 +1,48 @@
+name: Feature request / new rule
+description: Propose a new rule, a change to the taxonomy, or a checker enhancement.
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        New rules must be **checkable** and **sourced** — the premise is
+        *don't trust a written promise, make something check it*. See
+        [docs/spec/RULES.md](../blob/main/docs/spec/RULES.md) for the bar every rule meets.
+  - type: textarea
+    id: problem
+    attributes:
+      label: The delivery-operations risk
+      description: What failure mode should the checker catch that it doesn't today?
+      placeholder: "A repo can declare a rollback path but never prove the drill actually runs…"
+    validations:
+      required: true
+  - type: textarea
+    id: check
+    attributes:
+      label: How would it be checked?
+      description: What signal in the tree / git history / forge / ledger makes this pass or fail deterministically (or as a judgment call)?
+    validations:
+      required: true
+  - type: dropdown
+    id: family
+    attributes:
+      label: Rule family (best fit)
+      options:
+        - DESC (descriptor)
+        - BR (branching)
+        - CI (CI/CD)
+        - ENV (environments)
+        - IAC (infrastructure-as-code)
+        - FLAG (feature flags)
+        - RB (rollback)
+        - HOT (hotfix/incident)
+        - GOV (ledger governance)
+        - "New family / unsure"
+    validations:
+      required: true
+  - type: input
+    id: source
+    attributes:
+      label: Primary source
+      description: A URL/standard backing the practice (DORA, SLSA, OWASP, a cloud provider doc, …).
+      placeholder: "https://…"

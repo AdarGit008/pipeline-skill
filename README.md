@@ -49,6 +49,17 @@ Make a `pipeline` job a required status check so the standard runs on every PR �
 - **[`docs/spec/`](docs/spec/)** — the locked v0.1 spec: `SPEC.md` · `RULES.md` (every rule
   with a verbatim quote + URL source) · `ARCHITECTURE.md` · `SKILL-DRAFT.md` · `FOLLOW-UPS.md`.
 
+## Community & contributing
+
+- **[CONTRIBUTING.md](CONTRIBUTING.md)** — build/test/PR flow, the zero-dependency rule, and the three CI gates.
+- **[SUPPORT.md](SUPPORT.md)** — where questions and help requests belong.
+- **[SECURITY.md](SECURITY.md)** — report a vulnerability privately (never in a public issue).
+- **[CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md)** — the Contributor Covenant this community follows.
+
+This repo dogfoods its sibling for its own readiness — score it with
+`node ../baseline/baseline-skill/check.mjs --repo .` (posture declared in `baseline.repo.json`).
+
 ## License
 
 MIT
+

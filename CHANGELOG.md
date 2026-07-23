@@ -3,6 +3,16 @@
 All notable changes to pipeline-skill. Format loosely follows
 [Keep a Changelog](https://keepachangelog.com/); versions track `rules.json`.
 
+## [Unreleased]
+
+### Added
+- **Community-health / guest-readiness files** — `SECURITY.md`, `CONTRIBUTING.md`,
+  `CODE_OF_CONDUCT.md` (Contributor Covenant), `SUPPORT.md`, `.github/CODEOWNERS`,
+  issue + PR templates, `.github/dependabot.yml`, and a `.gitleaks.toml` secret-scan gate
+  wired into CI. Brings the repo up to the sibling baseline-skill's readiness bar.
+- **`baseline.repo.json` + `baseline.config.json`** — the repo now dogfoods baseline-skill
+  (readiness-only `docs` posture, declared `sources_of_truth`).
+
 ## [0.1.1] — 2026-07-23
 
 Follow-up pass after v0.1.0 (docs/spec/FOLLOW-UPS.md).

@@ -1,0 +1,13 @@
+{
+  "_comment": "Guest-readiness suite: pipeline-skill dogfoods its sibling baseline-skill to prove the repo is ready for any expected guest. project_type=docs narrows the run to the rules that fit a zero-dep docs/distribution repo (build/test/service rules skip as n/a). Scored via: node ../baseline/baseline-skill/check.mjs --repo .",
+  "project_type": "docs",
+  "makes_external_claims": false,
+  "sources_of_truth": {
+    "check.mjs": "The checker — single source of truth for how a rule is scored (loads its rule set from its own directory).",
+    "rules.json": "The rule-set manifest; the 39 rules live in rules/ (canonical, machine-readable), one file per family.",
+    "REFERENCE.md": "Full human reference: data flow, config keys, CI wiring, and the ledger format.",
+    "SKILL.md": "How the /pipeline agent skill behaves (score / init / fix / explain modes).",
+    "GLOSSARY.md": "Plain-language definitions of the delivery/DevOps terms the rules use.",
+    "docs/spec/SPEC.md": "The locked v0.1 spec of record — the taxonomy, profiles, and acceptance criteria."
+  }
+}
